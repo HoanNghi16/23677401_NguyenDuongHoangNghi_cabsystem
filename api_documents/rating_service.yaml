@@ -1,0 +1,526 @@
+openapi: 3.0.3
+
+info:
+  title: Rating Service API
+  version: 1.0.0
+  description: |
+    Rating Service quản lý việc khách hàng đánh giá tài xế
+    sau khi chuyến đi hoàn thành.
+
+    Trách nhiệm chính:
+    - Cho phép khách hàng đánh giá tài xế sau chuyến đi.
+    - Lưu trữ đánh giá và nhận xét.
+    - Cho phép khách hàng xem lại đánh giá đã tạo.
+    - Cung cấp điểm đánh giá trung bình của tài xế.
+    - Ngăn khách hàng đánh giá nhiều lần cho cùng một chuyến.
+
+    Rating Service không quản lý:
+    - Thông tin tài khoản người dùng.
+    - Vòng đời chuyến đi.
+    - Thông tin phương tiện.
+    - Thanh toán.
+
+servers:
+  - url: http://localhost:8007
+    description: Local development server
+
+tags:
+  - name: Ratings
+    description: Quản lý đánh giá
+  - name: Driver Ratings
+    description: Đánh giá của tài xế
+
+paths:
+
+  /ratings:
+    post:
+      tags:
+        - Ratings
+      summary: Đánh giá tài xế
+      description: |
+        Khách hàng tạo đánh giá cho tài xế sau khi chuyến đi
+        đã hoàn thành.
+
+        Mỗi khách hàng chỉ được tạo một đánh giá cho một chuyến.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRatingRequest'
+      responses:
+        '201':
+          description: Tạo đánh giá thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rating'
+
+        '400':
+          description: Dữ liệu đánh giá không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '401':
+          description: Chưa xác thực
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '403':
+          description: Không có quyền đánh giá chuyến này
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '409':
+          description: Chuyến đi đã được đánh giá
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /ratings/{ratingId}:
+    get:
+      tags:
+        - Ratings
+      summary: Xem đánh giá
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RatingId'
+      responses:
+        '200':
+          description: Thông tin đánh giá
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rating'
+
+        '401':
+          description: Chưa xác thực
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '403':
+          description: Không có quyền xem đánh giá
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '404':
+          description: Không tìm thấy đánh giá
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    patch:
+      tags:
+        - Ratings
+      summary: Cập nhật đánh giá
+      description: |
+        Cho phép khách hàng cập nhật đánh giá trong thời gian
+        được hệ thống quy định.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RatingId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRatingRequest'
+      responses:
+        '200':
+          description: Cập nhật đánh giá thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rating'
+
+        '400':
+          description: Không thể cập nhật đánh giá
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '401':
+          description: Chưa xác thực
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '403':
+          description: Không có quyền cập nhật đánh giá
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '404':
+          description: Không tìm thấy đánh giá
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /trips/{tripId}/rating:
+    get:
+      tags:
+        - Ratings
+      summary: Xem đánh giá của một chuyến
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TripId'
+      responses:
+        '200':
+          description: Đánh giá của chuyến
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rating'
+
+        '401':
+          description: Chưa xác thực
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '404':
+          description: Chuyến chưa có đánh giá
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /drivers/{driverId}/ratings:
+    get:
+      tags:
+        - Driver Ratings
+      summary: Lấy danh sách đánh giá của tài xế
+      description: |
+        Trả về các đánh giá mà tài xế đã nhận được.
+
+        Có thể sử dụng endpoint này để hiển thị lịch sử
+        đánh giá hoặc phục vụ hệ thống vận hành.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DriverId'
+
+        - name: minRating
+          in: query
+          required: false
+          description: Chỉ lấy đánh giá có số sao lớn hơn hoặc bằng giá trị này.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+
+      responses:
+        '200':
+          description: Danh sách đánh giá
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingListResponse'
+
+        '401':
+          description: Chưa xác thực
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '404':
+          description: Không tìm thấy tài xế
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /drivers/{driverId}/ratings/summary:
+    get:
+      tags:
+        - Driver Ratings
+      summary: Lấy tổng quan đánh giá của tài xế
+      description: |
+        Trả về điểm đánh giá trung bình và số lượng đánh giá
+        mà tài xế đã nhận được.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DriverId'
+      responses:
+        '200':
+          description: Tổng quan đánh giá
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DriverRatingSummary'
+
+        '401':
+          description: Chưa xác thực
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '404':
+          description: Không tìm thấy tài xế
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+
+  securitySchemes:
+
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+
+    RatingId:
+      name: ratingId
+      in: path
+      required: true
+      description: ID của đánh giá
+      schema:
+        type: string
+        format: uuid
+
+    TripId:
+      name: tripId
+      in: path
+      required: true
+      description: ID của chuyến đi
+      schema:
+        type: string
+        format: uuid
+
+    DriverId:
+      name: driverId
+      in: path
+      required: true
+      description: ID của tài xế
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+
+    CreateRatingRequest:
+      type: object
+      required:
+        - tripId
+        - driverId
+        - score
+      properties:
+        tripId:
+          type: string
+          format: uuid
+          description: Chuyến đi được đánh giá.
+
+        driverId:
+          type: string
+          format: uuid
+          description: Tài xế được đánh giá.
+
+        score:
+          type: integer
+          minimum: 1
+          maximum: 5
+          description: Điểm đánh giá từ 1 đến 5 sao.
+          example: 5
+
+        comment:
+          type: string
+          maxLength: 1000
+          nullable: true
+          description: Nhận xét của khách hàng.
+          example: "Tài xế rất thân thiện và chạy xe an toàn."
+
+    UpdateRatingRequest:
+      type: object
+      properties:
+        score:
+          type: integer
+          minimum: 1
+          maximum: 5
+          example: 4
+
+        comment:
+          type: string
+          maxLength: 1000
+          nullable: true
+          example: "Tài xế phục vụ tốt."
+
+    Rating:
+      type: object
+      required:
+        - id
+        - tripId
+        - customerId
+        - driverId
+        - score
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+
+        tripId:
+          type: string
+          format: uuid
+
+        customerId:
+          type: string
+          format: uuid
+
+        driverId:
+          type: string
+          format: uuid
+
+        score:
+          type: integer
+          minimum: 1
+          maximum: 5
+          example: 5
+
+        comment:
+          type: string
+          nullable: true
+          example: "Tài xế rất thân thiện."
+
+        createdAt:
+          type: string
+          format: date-time
+
+        updatedAt:
+          type: string
+          format: date-time
+
+    RatingListResponse:
+      type: object
+      required:
+        - items
+        - page
+        - limit
+        - total
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Rating'
+
+        page:
+          type: integer
+          example: 1
+
+        limit:
+          type: integer
+          example: 20
+
+        total:
+          type: integer
+          example: 120
+
+    DriverRatingSummary:
+      type: object
+      required:
+        - driverId
+        - averageRating
+        - totalRatings
+      properties:
+        driverId:
+          type: string
+          format: uuid
+
+        averageRating:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 5
+          example: 4.72
+
+        totalRatings:
+          type: integer
+          minimum: 0
+          example: 120
+
+        ratingDistribution:
+          type: object
+          properties:
+            fiveStars:
+              type: integer
+              example: 90
+
+            fourStars:
+              type: integer
+              example: 20
+
+            threeStars:
+              type: integer
+              example: 6
+
+            twoStars:
+              type: integer
+              example: 2
+
+            oneStar:
+              type: integer
+              example: 2
+
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          example: RATING_ALREADY_EXISTS
+
+        message:
+          type: string
+          example: Chuyến đi này đã được đánh giá.
+
+        details:
+          type: object
+          additionalProperties: true

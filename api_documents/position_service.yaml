@@ -1,0 +1,549 @@
+openapi: 3.0.3
+
+info:
+  title: Position Service API
+  version: 1.0.0
+  description: |
+    Position Service quản lý vị trí địa lý realtime của tài xế.
+
+    Trách nhiệm chính:
+    - Ghi nhận vị trí GPS hiện tại của tài xế.
+    - Cập nhật vị trí realtime.
+    - Truy vấn vị trí hiện tại của tài xế.
+    - Tìm các tài xế gần một vị trí cụ thể.
+    - Sắp xếp tài xế theo khoảng cách.
+
+    Position Service không quản lý thông tin tài khoản,
+    phương tiện hoặc trạng thái nghiệp vụ của tài xế.
+    Các thông tin này thuộc User Service.
+
+servers:
+  - url: http://localhost:8004
+    description: Local development server
+
+tags:
+  - name: Positions
+    description: Quản lý vị trí tài xế
+  - name: Nearby Drivers
+    description: Tìm tài xế gần vị trí
+
+paths:
+
+  /drivers/{driverId}/position:
+    get:
+      tags:
+        - Positions
+      summary: Lấy vị trí hiện tại của tài xế
+      description: |
+        Trả về vị trí GPS gần nhất mà hệ thống ghi nhận
+        của tài xế.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DriverId'
+      responses:
+        '200':
+          description: Vị trí hiện tại của tài xế
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DriverPosition'
+
+        '401':
+          description: Chưa xác thực
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '404':
+          description: Không tìm thấy vị trí của tài xế
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Positions
+      summary: Cập nhật vị trí tài xế
+      description: |
+        Tài xế gửi vị trí GPS hiện tại lên hệ thống.
+
+        Endpoint này có thể được gọi định kỳ trong quá trình
+        tài xế online hoặc đang thực hiện chuyến.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DriverId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePositionRequest'
+      responses:
+        '200':
+          description: Cập nhật vị trí thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DriverPosition'
+
+        '400':
+          description: Tọa độ không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '401':
+          description: Chưa xác thực
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '403':
+          description: Không có quyền cập nhật vị trí của tài xế
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /drivers/nearby:
+    get:
+      tags:
+        - Nearby Drivers
+      summary: Tìm tài xế gần một vị trí
+      description: |
+        Tìm các tài xế nằm trong bán kính được chỉ định quanh
+        một tọa độ.
+
+        Kết quả được sắp xếp theo khoảng cách từ gần đến xa.
+
+        Position Service chỉ chịu trách nhiệm xác định vị trí.
+        Việc kiểm tra tài xế có AVAILABLE hay không và loại xe
+        phù hợp được thực hiện thông qua User Service hoặc
+        thông tin trạng thái được truyền vào query.
+
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: latitude
+          in: query
+          required: true
+          description: Vĩ độ của điểm cần tìm
+          schema:
+            type: number
+            format: double
+            minimum: -90
+            maximum: 90
+          example: 10.7769
+
+        - name: longitude
+          in: query
+          required: true
+          description: Kinh độ của điểm cần tìm
+          schema:
+            type: number
+            format: double
+            minimum: -180
+            maximum: 180
+          example: 106.7009
+
+        - name: radius
+          in: query
+          required: false
+          description: Bán kính tìm kiếm, đơn vị mét
+          schema:
+            type: integer
+            minimum: 100
+            maximum: 50000
+            default: 5000
+          example: 5000
+
+        - name: limit
+          in: query
+          required: false
+          description: Số lượng tài xế tối đa trả về
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          example: 20
+
+        - name: vehicleType
+          in: query
+          required: false
+          description: |
+            Loại xe cần tìm.
+
+            Tham số này có thể được dùng để tối ưu truy vấn,
+            nhưng thông tin chính thức về loại xe thuộc User Service.
+          schema:
+            $ref: '#/components/schemas/VehicleType'
+
+      responses:
+        '200':
+          description: Danh sách tài xế gần vị trí yêu cầu
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NearbyDriverListResponse'
+
+        '400':
+          description: Tọa độ hoặc tham số tìm kiếm không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '401':
+          description: Chưa xác thực
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /drivers/{driverId}/position/history:
+    get:
+      tags:
+        - Positions
+      summary: Lấy lịch sử vị trí của tài xế
+      description: |
+        Trả về lịch sử các vị trí GPS được ghi nhận trong
+        khoảng thời gian chỉ định.
+
+        Chức năng này chủ yếu phục vụ việc giám sát và
+        tra cứu của hệ thống vận hành.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DriverId'
+
+        - name: from
+          in: query
+          required: true
+          description: Thời điểm bắt đầu
+          schema:
+            type: string
+            format: date-time
+
+        - name: to
+          in: query
+          required: true
+          description: Thời điểm kết thúc
+          schema:
+            type: string
+            format: date-time
+
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+            default: 100
+
+      responses:
+        '200':
+          description: Lịch sử vị trí
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PositionHistoryResponse'
+
+        '400':
+          description: Khoảng thời gian không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '401':
+          description: Chưa xác thực
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '403':
+          description: Không có quyền xem lịch sử vị trí
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '404':
+          description: Không tìm thấy tài xế
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+
+    DriverId:
+      name: driverId
+      in: path
+      required: true
+      description: ID của tài xế
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+
+    Coordinates:
+      type: object
+      required:
+        - latitude
+        - longitude
+      properties:
+        latitude:
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+          example: 10.7769
+
+        longitude:
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+          example: 106.7009
+
+    UpdatePositionRequest:
+      type: object
+      required:
+        - latitude
+        - longitude
+        - recordedAt
+      properties:
+        latitude:
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+          example: 10.7769
+
+        longitude:
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+          example: 106.7009
+
+        accuracy:
+          type: number
+          format: double
+          minimum: 0
+          description: Độ chính xác GPS, đơn vị mét
+          example: 5.2
+
+        speed:
+          type: number
+          format: double
+          minimum: 0
+          description: Tốc độ hiện tại, đơn vị m/s
+          example: 8.5
+
+        heading:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 360
+          description: Hướng di chuyển, đơn vị độ
+          example: 120
+
+        recordedAt:
+          type: string
+          format: date-time
+          description: Thời điểm thiết bị ghi nhận vị trí
+
+    DriverPosition:
+      type: object
+      required:
+        - driverId
+        - coordinates
+        - recordedAt
+      properties:
+        driverId:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+
+        coordinates:
+          $ref: '#/components/schemas/Coordinates'
+
+        accuracy:
+          type: number
+          format: double
+          nullable: true
+          example: 5.2
+
+        speed:
+          type: number
+          format: double
+          nullable: true
+          example: 8.5
+
+        heading:
+          type: number
+          format: double
+          nullable: true
+          example: 120
+
+        recordedAt:
+          type: string
+          format: date-time
+
+        receivedAt:
+          type: string
+          format: date-time
+          description: Thời điểm server nhận dữ liệu
+
+    NearbyDriver:
+      type: object
+      required:
+        - driverId
+        - coordinates
+        - distanceMeters
+      properties:
+        driverId:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+
+        coordinates:
+          $ref: '#/components/schemas/Coordinates'
+
+        distanceMeters:
+          type: number
+          format: double
+          description: Khoảng cách từ điểm tìm kiếm đến tài xế
+          example: 850.5
+
+        estimatedArrivalSeconds:
+          type: integer
+          nullable: true
+          description: Thời gian dự kiến để tài xế đến điểm đón
+          example: 180
+
+    NearbyDriverListResponse:
+      type: object
+      required:
+        - items
+        - total
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/NearbyDriver'
+
+        total:
+          type: integer
+          example: 8
+
+        searchRadiusMeters:
+          type: integer
+          example: 5000
+
+    PositionHistoryItem:
+      type: object
+      required:
+        - coordinates
+        - recordedAt
+      properties:
+        coordinates:
+          $ref: '#/components/schemas/Coordinates'
+
+        accuracy:
+          type: number
+          format: double
+          nullable: true
+
+        speed:
+          type: number
+          format: double
+          nullable: true
+
+        heading:
+          type: number
+          format: double
+          nullable: true
+
+        recordedAt:
+          type: string
+          format: date-time
+
+    PositionHistoryResponse:
+      type: object
+      required:
+        - items
+        - page
+        - limit
+        - total
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PositionHistoryItem'
+
+        page:
+          type: integer
+          example: 1
+
+        limit:
+          type: integer
+          example: 100
+
+        total:
+          type: integer
+          example: 1250
+
+    VehicleType:
+      type: string
+      enum:
+        - MOTORBIKE
+        - CAR_4
+        - CAR_7
+
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          example: "POSITION_NOT_FOUND"
+
+        message:
+          type: string
+          example: "Không tìm thấy vị trí hiện tại của tài xế."
+
+        details:
+          type: object
+          additionalProperties: true
