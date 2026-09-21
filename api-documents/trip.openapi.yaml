@@ -1,0 +1,941 @@
+openapi: 3.0.3
+
+info:
+  title: Trip Service API
+  version: 1.0.0
+  description: |
+    API documentation for the Trip Service of the CAB system.
+
+    The Trip Service is responsible for:
+    - Creating trips from accepted bookings
+    - Managing trip lifecycle
+    - Tracking ongoing trips
+    - Managing trip history
+    - Confirming cash payments
+    - Handling trip incidents
+    - Monitoring ongoing trips
+    - Querying transaction history
+
+servers:
+  - url: http://localhost:8004
+    description: Local development server
+
+tags:
+  - name: Trips
+    description: Trip lifecycle management
+  - name: Tracking
+    description: Trip location tracking
+  - name: Trip History
+    description: Trip history queries
+  - name: Payment
+    description: Cash payment confirmation
+  - name: Incidents
+    description: Trip incident management
+  - name: Operator
+    description: Operator trip monitoring and transaction queries
+
+paths:
+
+  /trips:
+    post:
+      tags:
+        - Trips
+      summary: Create a trip
+      description: |
+        Creates a new trip from an accepted booking.
+
+        This is an internal endpoint and can only be called by the
+        Booking Service through the API Gateway.
+
+        The Booking Service calls this endpoint after a driver accepts
+        a ride request.
+      operationId: createTrip
+      security:
+        - internalApiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTripRequest'
+      responses:
+        '201':
+          description: Trip created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TripResponse'
+
+        '400':
+          description: Invalid trip creation request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '401':
+          description: Invalid or missing internal API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '409':
+          description: Trip already exists for the booking
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+
+  /trips/{tripId}:
+    get:
+      tags:
+        - Trips
+      summary: Get trip details
+      description: |
+        Returns the details of a trip.
+
+        Customers and drivers can access trips associated with their
+        accounts. Operators can access trips for monitoring purposes.
+      operationId: getTrip
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TripId'
+      responses:
+        '200':
+          description: Trip retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TripResponse'
+
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '403':
+          description: User is not allowed to access this trip
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '404':
+          description: Trip not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+
+    patch:
+      tags:
+        - Trips
+      summary: Update trip status
+      description: |
+        Updates the current status of a trip.
+
+        This endpoint is used to manage the trip lifecycle.
+        The allowed status transitions are validated by the Trip Service.
+      operationId: updateTripStatus
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TripId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTripStatusRequest'
+      responses:
+        '200':
+          description: Trip status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TripResponse'
+
+        '400':
+          description: Invalid status transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '403':
+          description: User is not allowed to update this trip
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '404':
+          description: Trip not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+
+  /trips/{tripId}/location:
+    get:
+      tags:
+        - Tracking
+      summary: Get current trip location
+      description: |
+        Returns the latest known location of the driver assigned to the trip.
+
+        The location is used by customers to track the ongoing trip.
+      operationId: getTripLocation
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TripId'
+      responses:
+        '200':
+          description: Current trip location retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TripLocationResponse'
+
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '403':
+          description: User is not allowed to track this trip
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '404':
+          description: Trip not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+
+  /trips/history:
+    get:
+      tags:
+        - Trip History
+      summary: Get trip history
+      description: |
+        Returns the trip history of the authenticated customer or driver.
+
+        Operators may also query trip history according to their
+        authorization permissions.
+      operationId: getTripHistory
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          description: Page number
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+
+        - name: limit
+          in: query
+          required: false
+          description: Number of records per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+
+      responses:
+        '200':
+          description: Trip history retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TripHistoryResponse'
+
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '403':
+          description: User is not allowed to access trip history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+
+  /trips/{tripId}/payment/confirm:
+    post:
+      tags:
+        - Payment
+      summary: Confirm cash payment
+      description: |
+        Confirms that the customer has paid the trip fare in cash.
+
+        The driver confirms the payment after receiving cash from
+        the customer.
+      operationId: confirmPayment
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TripId'
+      responses:
+        '200':
+          description: Payment confirmed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+
+        '400':
+          description: Payment cannot be confirmed for the current trip state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '403':
+          description: Only the assigned driver can confirm the payment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '404':
+          description: Trip not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+
+  /trips/{tripId}/incidents:
+    post:
+      tags:
+        - Incidents
+      summary: Report a trip incident
+      description: |
+        Reports an incident related to an ongoing or completed trip.
+
+        This endpoint is intended for operators to handle trip incidents.
+      operationId: createTripIncident
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TripId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateIncidentRequest'
+      responses:
+        '201':
+          description: Incident reported successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentResponse'
+
+        '400':
+          description: Invalid incident request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '403':
+          description: Only authorized operators can report trip incidents
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '404':
+          description: Trip not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+
+  /trips/ongoing:
+    get:
+      tags:
+        - Operator
+      summary: Get ongoing trips
+      description: |
+        Returns trips that are currently in progress.
+
+        This endpoint is intended for operators to monitor ongoing trips.
+      operationId: getOngoingTrips
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          description: Page number
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+
+        - name: limit
+          in: query
+          required: false
+          description: Number of records per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+
+      responses:
+        '200':
+          description: Ongoing trips retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OngoingTripsResponse'
+
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '403':
+          description: Only authorized operators can access ongoing trips
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+
+  /transactions:
+    get:
+      tags:
+        - Operator
+      summary: Query transaction history
+      description: |
+        Returns transaction records related to completed trips.
+
+        This endpoint is intended for operators to query transaction
+        history.
+      operationId: getTransactions
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          description: Page number
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+
+        - name: limit
+          in: query
+          required: false
+          description: Number of records per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+
+      responses:
+        '200':
+          description: Transaction history retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionHistoryResponse'
+
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '403':
+          description: Only authorized operators can access transaction history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+
+components:
+
+  securitySchemes:
+
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: access_token
+      description: JWT authentication token stored in an HttpOnly cookie.
+
+    internalApiKey:
+      type: apiKey
+      in: header
+      name: X-Internal-API-Key
+      description: |
+        Internal API key used by the Booking Service when calling
+        Trip Service through the API Gateway.
+
+
+  parameters:
+
+    TripId:
+      name: tripId
+      in: path
+      required: true
+      description: Unique identifier of the trip
+      schema:
+        type: integer
+        format: int64
+        example: 5001
+
+
+  schemas:
+
+    CreateTripRequest:
+      type: object
+      required:
+        - booking_id
+        - customer_id
+        - driver_id
+        - pickup_location
+        - destination
+        - fare
+      properties:
+        booking_id:
+          type: integer
+          format: int64
+          description: ID of the booking that produced this trip
+          example: 1001
+
+        customer_id:
+          type: integer
+          format: int64
+          description: Account ID of the customer
+          example: 25
+
+        driver_id:
+          type: integer
+          format: int64
+          description: Driver profile ID
+          example: 42
+
+        pickup_location:
+          $ref: '#/components/schemas/Location'
+
+        destination:
+          $ref: '#/components/schemas/Location'
+
+        fare:
+          $ref: '#/components/schemas/Fare'
+
+
+    TripResponse:
+      type: object
+      required:
+        - id
+        - booking_id
+        - customer_id
+        - driver_id
+        - pickup_location
+        - destination
+        - fare
+        - status
+        - payment_status
+        - created_at
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 5001
+
+        booking_id:
+          type: integer
+          format: int64
+          example: 1001
+
+        customer_id:
+          type: integer
+          format: int64
+          example: 25
+
+        driver_id:
+          type: integer
+          format: int64
+          example: 42
+
+        pickup_location:
+          $ref: '#/components/schemas/Location'
+
+        destination:
+          $ref: '#/components/schemas/Location'
+
+        fare:
+          $ref: '#/components/schemas/Fare'
+
+        status:
+          type: string
+          enum:
+            - assigned
+            - driver_arrived
+            - in_progress
+            - completed
+          description: Current status of the trip
+          example: assigned
+
+        payment_status:
+          type: string
+          enum:
+            - unpaid
+            - paid
+          description: Current payment status of the trip
+          example: unpaid
+
+        created_at:
+          type: string
+          format: date-time
+          example: '2026-09-19T14:35:00Z'
+
+        updated_at:
+          type: string
+          format: date-time
+          example: '2026-09-19T14:50:00Z'
+
+
+    UpdateTripStatusRequest:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum:
+            - driver_arrived
+            - in_progress
+            - completed
+          description: New status of the trip
+          example: in_progress
+
+
+    Location:
+      type: object
+      required:
+        - latitude
+        - longitude
+      properties:
+        latitude:
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+          example: 10.7769
+
+        longitude:
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+          example: 106.7009
+
+        address:
+          type: string
+          nullable: true
+          example: 123 Nguyen Hue, District 1, Ho Chi Minh City
+
+
+    Fare:
+      type: object
+      required:
+        - amount
+        - currency
+      properties:
+        amount:
+          type: number
+          format: double
+          minimum: 0
+          example: 85000
+
+        currency:
+          type: string
+          example: VND
+
+
+    TripLocationResponse:
+      type: object
+      required:
+        - trip_id
+        - location
+        - updated_at
+      properties:
+        trip_id:
+          type: integer
+          format: int64
+          example: 5001
+
+        location:
+          $ref: '#/components/schemas/Location'
+
+        updated_at:
+          type: string
+          format: date-time
+          example: '2026-09-19T14:50:30Z'
+
+
+    TripHistoryResponse:
+      type: object
+      required:
+        - items
+        - page
+        - limit
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TripResponse'
+
+        page:
+          type: integer
+          example: 1
+
+        limit:
+          type: integer
+          example: 20
+
+        total:
+          type: integer
+          example: 45
+
+
+    PaymentResponse:
+      type: object
+      required:
+        - trip_id
+        - payment_status
+      properties:
+        trip_id:
+          type: integer
+          format: int64
+          example: 5001
+
+        payment_status:
+          type: string
+          enum:
+            - paid
+          example: paid
+
+        paid_at:
+          type: string
+          format: date-time
+          example: '2026-09-19T15:10:00Z'
+
+
+    CreateIncidentRequest:
+      type: object
+      required:
+        - description
+      properties:
+        description:
+          type: string
+          minLength: 1
+          description: Description of the trip incident
+          example: Driver reported a vehicle problem during the trip.
+
+
+    IncidentResponse:
+      type: object
+      required:
+        - id
+        - trip_id
+        - description
+        - created_at
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 9001
+
+        trip_id:
+          type: integer
+          format: int64
+          example: 5001
+
+        description:
+          type: string
+          example: Driver reported a vehicle problem during the trip.
+
+        created_at:
+          type: string
+          format: date-time
+          example: '2026-09-19T15:05:00Z'
+
+
+    OngoingTripsResponse:
+      type: object
+      required:
+        - items
+        - page
+        - limit
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TripResponse'
+
+        page:
+          type: integer
+          example: 1
+
+        limit:
+          type: integer
+          example: 20
+
+        total:
+          type: integer
+          example: 12
+
+
+    Transaction:
+      type: object
+      required:
+        - trip_id
+        - customer_id
+        - driver_id
+        - amount
+        - currency
+        - payment_status
+      properties:
+        trip_id:
+          type: integer
+          format: int64
+          example: 5001
+
+        customer_id:
+          type: integer
+          format: int64
+          example: 25
+
+        driver_id:
+          type: integer
+          format: int64
+          example: 42
+
+        amount:
+          type: number
+          format: double
+          example: 85000
+
+        currency:
+          type: string
+          example: VND
+
+        payment_status:
+          type: string
+          enum:
+            - unpaid
+            - paid
+          example: paid
+
+        paid_at:
+          type: string
+          format: date-time
+          nullable: true
+          example: '2026-09-19T15:10:00Z'
+
+
+    TransactionHistoryResponse:
+      type: object
+      required:
+        - items
+        - page
+        - limit
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Transaction'
+
+        page:
+          type: integer
+          example: 1
+
+        limit:
+          type: integer
+          example: 20
+
+        total:
+          type: integer
+          example: 120
+
+
+    ErrorResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: Trip not found.
+
+        code:
+          type: string
+          nullable: true
+          example: TRIP_NOT_FOUND

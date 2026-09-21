@@ -1,0 +1,431 @@
+openapi: 3.0.3
+
+info:
+  title: Booking Service API
+  version: 1.0.0
+  description: |
+    API documentation for the Booking Service of the CAB system.
+
+    The Booking Service is responsible for:
+    - Creating ride bookings
+    - Calculating ride fares
+    - Finding suitable drivers
+    - Dispatching ride requests to drivers
+    - Managing driver assignment state for bookings
+
+servers:
+  - url: http://localhost:8003
+    description: Local development server
+
+tags:
+  - name: Bookings
+    description: Ride booking management
+  - name: Fare
+    description: Fare information for bookings
+  - name: Driver Matching
+    description: Driver assignment information for bookings
+
+paths:
+
+  /bookings:
+    post:
+      tags:
+        - Bookings
+      summary: Create a ride booking
+      description: |
+        Creates a new ride booking for the authenticated customer.
+
+        After the booking is created, the Booking Service internally:
+        1. Calculates the estimated fare.
+        2. Searches for suitable drivers.
+        3. Selects the nearest candidates.
+        4. Starts the driver dispatch process.
+
+        Driver matching and assignment are internal processes and are not
+        exposed as separate public APIs.
+      operationId: createBooking
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBookingRequest'
+      responses:
+        '201':
+          description: Booking created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingResponse'
+        '400':
+          description: Invalid booking request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /bookings/{bookingId}:
+    get:
+      tags:
+        - Bookings
+      summary: Get booking details
+      description: Returns the details and current status of a booking.
+      operationId: getBooking
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/BookingId'
+      responses:
+        '200':
+          description: Booking retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: User is not allowed to access this booking
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Booking not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /bookings/{bookingId}/fare:
+    get:
+      tags:
+        - Fare
+      summary: Get booking fare
+      description: Returns the fare calculated for a booking.
+      operationId: getBookingFare
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/BookingId'
+      responses:
+        '200':
+          description: Fare retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FareResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: User is not allowed to access this booking
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Booking not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /bookings/{bookingId}/driver:
+    get:
+      tags:
+        - Driver Matching
+      summary: Get assigned driver
+      description: |
+        Returns the driver currently assigned to the booking.
+
+        If no driver has been assigned yet, the response contains no driver.
+      operationId: getAssignedDriver
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/BookingId'
+      responses:
+        '200':
+          description: Assigned driver information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignedDriverResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: User is not allowed to access this booking
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Booking not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+
+components:
+
+  securitySchemes:
+
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: access_token
+      description: JWT authentication token stored in an HttpOnly cookie.
+
+
+  parameters:
+
+    BookingId:
+      name: bookingId
+      in: path
+      required: true
+      description: Unique identifier of the booking
+      schema:
+        type: integer
+        format: int64
+        example: 1001
+
+
+  schemas:
+
+    CreateBookingRequest:
+      type: object
+      required:
+        - pickup_location
+        - destination
+        - vehicle_type
+      properties:
+        pickup_location:
+          $ref: '#/components/schemas/Location'
+        destination:
+          $ref: '#/components/schemas/Location'
+        vehicle_type:
+          type: string
+          description: Type of vehicle requested by the customer
+          example: car
+
+
+    BookingResponse:
+      type: object
+      required:
+        - id
+        - customer_id
+        - pickup_location
+        - destination
+        - vehicle_type
+        - status
+        - fare
+        - created_at
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1001
+
+        customer_id:
+          type: integer
+          format: int64
+          description: Account ID of the customer who created the booking
+          example: 25
+
+        pickup_location:
+          $ref: '#/components/schemas/Location'
+
+        destination:
+          $ref: '#/components/schemas/Location'
+
+        vehicle_type:
+          type: string
+          description: Vehicle type requested by the customer
+          example: car
+
+        status:
+          type: string
+          description: Current status of the booking
+          enum:
+            - searching_driver
+            - waiting_driver_response
+            - driver_assigned
+            - no_driver
+          example: searching_driver
+
+        fare:
+          $ref: '#/components/schemas/Fare'
+
+        driver:
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/DriverSummary'
+          description: |
+            Assigned driver information.
+            This field is null when a driver has not been assigned.
+
+        created_at:
+          type: string
+          format: date-time
+          example: '2026-09-19T14:30:00Z'
+
+        updated_at:
+          type: string
+          format: date-time
+          example: '2026-09-19T14:31:15Z'
+
+
+    Location:
+      type: object
+      required:
+        - latitude
+        - longitude
+      properties:
+        latitude:
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+          description: Latitude of the location
+          example: 10.7769
+
+        longitude:
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+          description: Longitude of the location
+          example: 106.7009
+
+        address:
+          type: string
+          nullable: true
+          description: Human-readable address of the location
+          example: 123 Nguyen Hue, District 1, Ho Chi Minh City
+
+
+    Fare:
+      type: object
+      required:
+        - amount
+        - currency
+      properties:
+        amount:
+          type: number
+          format: double
+          minimum: 0
+          description: Calculated fare amount
+          example: 85000
+
+        currency:
+          type: string
+          description: Currency of the fare
+          example: VND
+
+
+    FareResponse:
+      type: object
+      required:
+        - booking_id
+        - fare
+      properties:
+        booking_id:
+          type: integer
+          format: int64
+          example: 1001
+
+        fare:
+          $ref: '#/components/schemas/Fare'
+
+
+    AssignedDriverResponse:
+      type: object
+      required:
+        - booking_id
+        - driver
+      properties:
+        booking_id:
+          type: integer
+          format: int64
+          example: 1001
+
+        driver:
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/DriverSummary'
+          description: |
+            Driver assigned to the booking.
+            This field is null when the booking has no assigned driver.
+
+
+    DriverSummary:
+      type: object
+      required:
+        - driver_id
+        - account_id
+      properties:
+        driver_id:
+          type: integer
+          format: int64
+          description: Driver profile ID from the User Service
+          example: 42
+
+        account_id:
+          type: integer
+          format: int64
+          description: Driver account ID from the Auth Service
+          example: 87
+
+        status:
+          type: string
+          description: Current driver status known by the Booking Service
+          example: available
+
+        vehicle_type:
+          type: string
+          description: Type of vehicle currently associated with the driver
+          example: car
+
+
+    ErrorResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: Description of the error
+          example: Booking not found.
+
+        code:
+          type: string
+          nullable: true
+          description: Optional application-specific error code
+          example: BOOKING_NOT_FOUND

@@ -1,0 +1,226 @@
+openapi: 3.0.3
+
+info:
+  title: CAB Auth Service API
+  description: API quản lý đăng ký, đăng nhập và đăng xuất tài khoản trong hệ thống CAB.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+
+tags:
+  - name: Authentication
+    description: Các API quản lý xác thực tài khoản
+
+paths:
+
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Đăng ký tài khoản
+      description: Tạo tài khoản mới cho khách hàng hoặc tài xế.
+      operationId: register
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+
+      responses:
+        '201':
+          description: Đăng ký tài khoản thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+        '400':
+          description: Dữ liệu đăng ký không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '409':
+          description: Tài khoản hoặc thông tin đăng ký đã tồn tại
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Đăng nhập
+      description: Xác thực thông tin đăng nhập và tạo phiên đăng nhập bằng JWT được lưu trong HttpOnly cookie.
+      operationId: login
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+
+      responses:
+        '200':
+          description: Đăng nhập thành công
+          headers:
+            Set-Cookie:
+              description: JWT authentication cookie được thiết lập cho phiên đăng nhập.
+              schema:
+                type: string
+                example: access_token=eyJhbGciOiJIUzI1NiIs...; HttpOnly; Secure; SameSite=Lax
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+        '400':
+          description: Dữ liệu đăng nhập không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '401':
+          description: Thông tin đăng nhập không chính xác
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: Đăng xuất
+      description: Kết thúc phiên đăng nhập hiện tại và xóa authentication cookie.
+      operationId: logout
+
+      security:
+        - cookieAuth: []
+
+      responses:
+        '200':
+          description: Đăng xuất thành công
+          headers:
+            Set-Cookie:
+              description: Xóa JWT authentication cookie.
+              schema:
+                type: string
+                example: access_token=; Max-Age=0; HttpOnly; Secure; SameSite=Lax
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+        '401':
+          description: Người dùng chưa được xác thực
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+
+components:
+
+  securitySchemes:
+
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: access_token
+      description: JWT được lưu trong HttpOnly cookie.
+
+
+  schemas:
+
+    RegisterRequest:
+      type: object
+      required:
+        - username
+        - email
+        - phone_number
+        - password
+        - date_of_birth
+        - role
+
+      properties:
+        username:
+          type: string
+          description: Tên đăng nhập của người dùng.
+          example: nguyenvana
+
+        email:
+          type: string
+          format: email
+          description: Địa chỉ email của người dùng.
+          example: nguyenvana@gmail.com
+
+        phone_number:
+          type: string
+          description: Số điện thoại của người dùng.
+          example: "0901234567"
+
+        password:
+          type: string
+          format: password
+          description: Mật khẩu của người dùng.
+          example: StrongPassword123
+
+        date_of_birth:
+          type: string
+          format: date
+          description: Ngày sinh của người dùng.
+          example: "2003-05-15"
+
+        role:
+          type: string
+          description: Vai trò của tài khoản được tạo.
+          enum:
+            - customer
+            - driver
+          example: customer
+
+
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+
+      properties:
+        username:
+          type: string
+          description: Tên đăng nhập của người dùng.
+          example: nguyenvana
+
+        password:
+          type: string
+          format: password
+          description: Mật khẩu của người dùng.
+          example: StrongPassword123
+
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Operation successful.
+
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Invalid credentials.

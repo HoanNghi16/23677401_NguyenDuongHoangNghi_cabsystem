@@ -1,0 +1,888 @@
+openapi: 3.0.3
+
+info:
+  title: User Service API
+  description: API for managing customer profiles, driver profiles, and vehicles.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8002
+
+tags:
+  - name: Users
+    description: Current authenticated user profile
+  - name: Customers
+    description: Customer management
+  - name: Drivers
+    description: Driver management
+  - name: Vehicles
+    description: Vehicle management
+
+paths:
+
+  # ============================================================
+  # USERS
+  # ============================================================
+
+  /users/me:
+    get:
+      tags:
+        - Users
+      summary: Get current user profile
+      description: |
+        Returns the profile information of the currently authenticated account.
+
+        Authentication and authorization are handled by the API Gateway.
+        The account_id is obtained from the authenticated JWT.
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: User profile retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeResponse'
+
+        '401':
+          description: Authentication required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '404':
+          description: User profile not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    patch:
+      tags:
+        - Users
+      summary: Update current user profile
+      description: |
+        Updates the profile information of the currently authenticated account.
+
+        Authentication and authorization are handled by the API Gateway.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMyProfileRequest'
+
+      responses:
+        '200':
+          description: User profile updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeResponse'
+
+        '400':
+          description: Invalid request data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '401':
+          description: Authentication required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+
+  # ============================================================
+  # CUSTOMERS
+  # ============================================================
+
+  /customers:
+    get:
+      tags:
+        - Customers
+      summary: Get customers
+      description: |
+        Returns a list of customers.
+
+        This endpoint is intended for Operator use.
+        Authorization is handled by the API Gateway.
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Customers retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  customers:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CustomerProfile'
+
+        '401':
+          description: Authentication required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '403':
+          description: Permission denied.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+
+  /customers/{customerId}:
+    get:
+      tags:
+        - Customers
+      summary: Get customer by ID
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CustomerId'
+      responses:
+        '200':
+          description: Customer retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerProfile'
+
+        '401':
+          description: Authentication required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '403':
+          description: Permission denied.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '404':
+          description: Customer not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    patch:
+      tags:
+        - Customers
+      summary: Update customer
+      description: Updates customer profile information.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CustomerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCustomerRequest'
+
+      responses:
+        '200':
+          description: Customer updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerProfile'
+
+        '400':
+          description: Invalid request data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '401':
+          description: Authentication required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '403':
+          description: Permission denied.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '404':
+          description: Customer not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+
+  # ============================================================
+  # DRIVERS
+  # ============================================================
+
+  /drivers:
+    get:
+      tags:
+        - Drivers
+      summary: Get drivers
+      description: |
+        Returns a list of drivers.
+
+        This endpoint is intended for Operator use.
+        Authorization is handled by the API Gateway.
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Drivers retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  drivers:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DriverProfile'
+
+        '401':
+          description: Authentication required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '403':
+          description: Permission denied.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+
+  /drivers/{driverId}:
+    get:
+      tags:
+        - Drivers
+      summary: Get driver by ID
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DriverId'
+      responses:
+        '200':
+          description: Driver retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DriverProfile'
+
+        '401':
+          description: Authentication required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '403':
+          description: Permission denied.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '404':
+          description: Driver not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    patch:
+      tags:
+        - Drivers
+      summary: Update driver
+      description: Updates driver profile information.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DriverId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDriverRequest'
+
+      responses:
+        '200':
+          description: Driver updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DriverProfile'
+
+        '400':
+          description: Invalid request data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '401':
+          description: Authentication required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '403':
+          description: Permission denied.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '404':
+          description: Driver not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+
+  /drivers/{driverId}/status:
+    patch:
+      tags:
+        - Drivers
+      summary: Update driver status
+      description: |
+        Updates the current operational status of a driver.
+
+        This status is used by the Booking Service when finding
+        available drivers.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DriverId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDriverStatusRequest'
+
+      responses:
+        '200':
+          description: Driver status updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DriverProfile'
+
+        '400':
+          description: Invalid driver status.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '401':
+          description: Authentication required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '403':
+          description: Permission denied.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '404':
+          description: Driver not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+
+  # ============================================================
+  # VEHICLES
+  # ============================================================
+
+  /vehicles:
+    get:
+      tags:
+        - Vehicles
+      summary: Get vehicles
+      description: Returns a list of vehicles managed by the system.
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Vehicles retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  vehicles:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Vehicle'
+
+        '401':
+          description: Authentication required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '403':
+          description: Permission denied.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags:
+        - Vehicles
+      summary: Create vehicle
+      description: Creates a new vehicle.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateVehicleRequest'
+
+      responses:
+        '201':
+          description: Vehicle created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+
+        '400':
+          description: Invalid request data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '401':
+          description: Authentication required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '403':
+          description: Permission denied.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '409':
+          description: Vehicle already exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+
+  /vehicles/{vehicleId}:
+    get:
+      tags:
+        - Vehicles
+      summary: Get vehicle by ID
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/VehicleId'
+      responses:
+        '200':
+          description: Vehicle retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+
+        '401':
+          description: Authentication required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '403':
+          description: Permission denied.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '404':
+          description: Vehicle not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    patch:
+      tags:
+        - Vehicles
+      summary: Update vehicle
+      description: Updates vehicle information.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/VehicleId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateVehicleRequest'
+
+      responses:
+        '200':
+          description: Vehicle updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+
+        '400':
+          description: Invalid request data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '401':
+          description: Authentication required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '403':
+          description: Permission denied.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '404':
+          description: Vehicle not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+
+  # ============================================================
+  # COMPONENTS
+  # ============================================================
+
+components:
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: access_token
+
+
+  parameters:
+
+    CustomerId:
+      name: customerId
+      in: path
+      required: true
+      description: Customer profile ID.
+      schema:
+        type: integer
+        format: int64
+
+    DriverId:
+      name: driverId
+      in: path
+      required: true
+      description: Driver profile ID.
+      schema:
+        type: integer
+        format: int64
+
+    VehicleId:
+      name: vehicleId
+      in: path
+      required: true
+      description: Vehicle ID.
+      schema:
+        type: integer
+        format: int64
+
+
+  schemas:
+
+    # ==========================================================
+    # CURRENT USER
+    # ==========================================================
+
+    MeResponse:
+      type: object
+      required:
+        - account_id
+        - role
+        - profile
+      properties:
+        account_id:
+          type: integer
+          format: int64
+          description: ID of the account owned by Auth Service.
+          example: 1001
+
+        role:
+          type: string
+          enum:
+            - customer
+            - driver
+            - operator
+          example: driver
+
+        profile:
+          oneOf:
+            - $ref: '#/components/schemas/CustomerProfile'
+            - $ref: '#/components/schemas/DriverProfile'
+
+
+    UpdateMyProfileRequest:
+      type: object
+      properties:
+        date_of_birth:
+          type: string
+          format: date
+          example: 2003-05-20
+
+
+    # ==========================================================
+    # CUSTOMER
+    # ==========================================================
+
+    CustomerProfile:
+      type: object
+      required:
+        - id
+        - account_id
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 501
+
+        account_id:
+          type: integer
+          format: int64
+          description: ID of the account owned by Auth Service.
+          example: 1001
+
+        date_of_birth:
+          type: string
+          format: date
+          example: 2003-05-20
+
+
+    UpdateCustomerRequest:
+      type: object
+      properties:
+        date_of_birth:
+          type: string
+          format: date
+          example: 2003-05-20
+
+
+    # ==========================================================
+    # DRIVER
+    # ==========================================================
+
+    DriverProfile:
+      type: object
+      required:
+        - id
+        - account_id
+        - status
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 601
+
+        account_id:
+          type: integer
+          format: int64
+          description: ID of the account owned by Auth Service.
+          example: 1002
+
+        date_of_birth:
+          type: string
+          format: date
+          example: 1998-10-12
+
+        status:
+          type: string
+          enum:
+            - offline
+            - available
+            - busy
+          example: available
+
+
+    UpdateDriverRequest:
+      type: object
+      properties:
+        date_of_birth:
+          type: string
+          format: date
+          example: 1998-10-12
+
+
+    UpdateDriverStatusRequest:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum:
+            - offline
+            - available
+            - busy
+          example: available
+
+
+    # ==========================================================
+    # VEHICLE
+    # ==========================================================
+
+    Vehicle:
+      type: object
+      required:
+        - id
+        - driver_id
+        - plate_number
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 701
+
+        driver_id:
+          type: integer
+          format: int64
+          description: ID of the driver profile associated with the vehicle.
+          example: 601
+
+        plate_number:
+          type: string
+          example: 59A-123.45
+
+        type:
+          type: string
+          example: car
+
+        model:
+          type: string
+          example: Toyota Vios
+
+        color:
+          type: string
+          example: White
+
+
+    CreateVehicleRequest:
+      type: object
+      required:
+        - driver_id
+        - plate_number
+      properties:
+        driver_id:
+          type: integer
+          format: int64
+          example: 601
+
+        plate_number:
+          type: string
+          example: 59A-123.45
+
+        type:
+          type: string
+          example: car
+
+        model:
+          type: string
+          example: Toyota Vios
+
+        color:
+          type: string
+          example: White
+
+
+    UpdateVehicleRequest:
+      type: object
+      properties:
+        plate_number:
+          type: string
+          example: 59A-123.45
+
+        type:
+          type: string
+          example: car
+
+        model:
+          type: string
+          example: Toyota Vios
+
+        color:
+          type: string
+          example: White
+
+
+    # ==========================================================
+    # COMMON
+    # ==========================================================
+
+    ErrorResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: Permission denied.
