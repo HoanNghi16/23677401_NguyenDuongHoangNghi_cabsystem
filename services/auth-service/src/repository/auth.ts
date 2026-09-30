@@ -1,5 +1,5 @@
 import type { User } from "../model/User.js";
-import {prisma} from "../infrastructure/database/prisma.js"
+import {prisma} from "../database/prisma.js"
 
 export class AuthRepo{
     static async createUser(input: User){  
@@ -23,6 +23,6 @@ export class AuthRepo{
                 }
             }
         })
-        return true
+        return updatedUser
     }
 }

@@ -1,18 +1,10 @@
+
+type ErrorType = "WRONG_PASSWORD" | "INVALID_REQUIRED_INPUT" | "INVALID_TOKEN" | "LOGIN_FAILED"
+
 export class AppError extends Error {
-    public readonly statusCode: number;
-    public readonly code: string;
-
-    constructor(
-        message: string,
-        statusCode: number = 500,
-        code: string = "INTERNAL_ERROR"
-    ) {
-        super(message);
-
-        this.name = "AppError";
-        this.statusCode = statusCode;
-        this.code = code;
-
-        Error.captureStackTrace(this, this.constructor);
+    public message: ErrorType
+    constructor(message: ErrorType){
+        super()
+        this.message = message
     }
 }

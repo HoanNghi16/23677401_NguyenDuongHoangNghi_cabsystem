@@ -4,6 +4,7 @@ import { AuthRepo } from "../repository/auth.js";
 import type { User } from "../model/User.js";
 import jwt from 'jsonwebtoken'
 import type { RefreshPayload } from "../../types/jwt.js";
+import { AppError } from "../middlewares/error/AppError.js";
 
 // Token generator function
 function tokenGenerator(user: any){
@@ -26,13 +27,13 @@ function tokenGenerator(user: any){
 
 
 // Auth Service Class
-export class AuthService{
+export class AuthController{
 
     static async register(input: RegisterBody, role: "CUSTOMER" | "DRIVER"){
         const {password, email, username} = input
         console.log(input)
         if (!password || !email || !username){
-            throw new Error("Invalid input")
+            throw new Error("INVALID_INPUT")
         }
         const hashedPassword = await bcrypt.hash(password, 10)
         const newUser: User = {...input, password: hashedPassword, role} 
@@ -44,32 +45,33 @@ export class AuthService{
     static async login(credentials: any){
         const {email, username, password} =  credentials
         if ((!email && !username) || !password){
-            throw Error("Vui lòng nhập đầy đủ thông tin")
+            throw new AppError("INVALID_REQUIRED_INPUT")
         }
 
         const user = await AuthRepo.findUserForLogin({email, username})
         if (user){
             const comparePassword = await bcrypt.compare(password, user?.password!)
             if (!comparePassword){
-                throw Error("Sai mật khẩu")
+                throw new AppError("WRONG_PASSWORD")
             }
-            if (!(await AuthRepo.updateTokenVersion(user.id))){
-                throw Error("Lỗi server! Vui lòng thử lại sau")
-            }
-            const tokens = tokenGenerator(user)
+            const updatedUser = await AuthRepo.updateTokenVersion(user.id)
+            const tokens = tokenGenerator(updatedUser)
             return tokens
         }else{
-            throw Error("Đăng nhập thất bại!")
+            throw new AppError("LOGIN_FAILED")
         }
         
     }
 
     static async refresh(token: string){
-        const claims = jwt.verify(token, process.env.JWT_REFRESH_SECRET!) as RefreshPayload
-        if (claims){
-            if(!(await AuthRepo.updateTokenVersion(claims.user_id))){
-                throw Error("Lỗi server! Vui lòng thử lại sau")
-            }
+        try{
+            const claims = jwt.verify(token, process.env.JWT_REFRESH_SECRET!) as RefreshPayload
+            const user = AuthRepo.updateTokenVersion(claims.user_id)
+            const tokens = tokenGenerator(user)
+
+            return tokens
+        }catch{
+            throw new AppError("INVALID_TOKEN")
         }
     }
 
