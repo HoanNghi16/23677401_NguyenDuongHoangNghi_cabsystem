@@ -5,6 +5,7 @@ import type { User } from "../model/User.js";
 import jwt from 'jsonwebtoken'
 import type { RefreshPayload } from "../../types/jwt.js";
 
+// Token generator function
 function tokenGenerator(user: any){
         const access = jwt.sign({
             user_id: user.id,
@@ -23,7 +24,10 @@ function tokenGenerator(user: any){
         return {access, refresh}
 }
 
+
+// Auth Service Class
 export class AuthService{
+
     static async register(input: RegisterBody, role: "CUSTOMER" | "DRIVER"){
         const {password, email, username} = input
         console.log(input)
@@ -36,11 +40,13 @@ export class AuthService{
         return AuthRepo.createUser(newUser)
     }
 
+
     static async login(credentials: any){
         const {email, username, password} =  credentials
         if ((!email && !username) || !password){
             throw Error("Vui lòng nhập đầy đủ thông tin")
         }
+
         const user = await AuthRepo.findUserForLogin({email, username})
         if (user){
             const comparePassword = await bcrypt.compare(password, user?.password!)
@@ -61,7 +67,10 @@ export class AuthService{
     static async refresh(token: string){
         const claims = jwt.verify(token, process.env.JWT_REFRESH_SECRET!) as RefreshPayload
         if (claims){
-            
+            if(!(await AuthRepo.updateTokenVersion(claims.user_id))){
+                throw Error("Lỗi server! Vui lòng thử lại sau")
+            }
         }
     }
+
 }
