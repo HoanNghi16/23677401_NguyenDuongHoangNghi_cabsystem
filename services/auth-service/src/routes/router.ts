@@ -1,6 +1,6 @@
 import express from "express"
-import { registerHandler } from "../handler/handler.js"
+import { AuthHandler } from "../handler/handler.js"
 
 export const router = express.Router()
 
-router.post("/register", registerHandler)
+router.post("/register/:role", AuthHandler.register)
