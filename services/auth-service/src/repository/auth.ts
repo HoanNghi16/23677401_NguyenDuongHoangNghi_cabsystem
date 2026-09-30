@@ -2,7 +2,27 @@ import type { User } from "../model/User.js";
 import {prisma} from "../infrastructure/database/prisma.js"
 
 export class AuthRepo{
-    static async register(input: User){  
+    static async createUser(input: User){  
         return await prisma.user.create({data: input})
+    }
+
+    static async findUserForLogin(input: {email?: string, username?: string}){
+        const user = await prisma.user.findFirst(
+            { where: input?.email ? {email: input.email} : {username: input.username || ""} 
+        })
+        return user
+    }
+
+    static async updateTokenVersion(userId: number){
+        const updatedUser = await prisma.user.update({
+            where:{
+                id: userId
+            },data:{
+                tokenVersion: {
+                    increment: 1
+                }
+            }
+        })
+        return true
     }
 }

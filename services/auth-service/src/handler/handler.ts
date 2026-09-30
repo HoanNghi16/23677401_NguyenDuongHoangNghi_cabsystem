@@ -19,9 +19,24 @@ export class AuthHandler{
     static async login(req: Request, res: Response){
         try{
             const credentials = req.body
-            
+            const result = await AuthService.login(credentials)
+            res.status(200).json({message: "Đăng nhập thành công",...result})
         }catch(error){
+            console.log(error)
+            res.status(400).json({message: error})
+        }
+    }
 
+    static async refresh(req: Request, res: Response){
+        try{
+            const refreshToken = req.query?.token
+            if (!refreshToken){
+                res.status(400).json({message: "Refresh token not found"})
+            }
+            AuthService.refresh(`${refreshToken}`)
+            res.status(200).json({message: "Bro đợi tui tí"})
+        }catch{
+            res.status(400).json({message: "Lỗi server!"})
         }
     }
 }
