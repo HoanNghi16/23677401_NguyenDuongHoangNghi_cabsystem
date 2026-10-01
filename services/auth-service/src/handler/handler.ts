@@ -18,7 +18,7 @@ export class AuthHandler{
         try{
             const credentials = req.body
             const result = await AuthController.login(credentials)
-            res.status(200).json({message: "Đăng nhập thành công",...result})
+            res.status(200).json({...result})
         }catch(error){
             next(error)
         }

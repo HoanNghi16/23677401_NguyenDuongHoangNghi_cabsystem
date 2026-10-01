@@ -41,26 +41,35 @@ export class AuthController{
         return AuthRepo.createUser(newUser)
     }
 
+    static async customerRegister(input: RegisterBody){
+        return this.register(input, "CUSTOMER")
+    }
+
+    static async driverRegister(input: RegisterBody){
+        return this.register(input, "DRIVER")
+    }
+
 
     static async login(credentials: any){
+        console.log(credentials)
         const {email, username, password} =  credentials
         if ((!email && !username) || !password){
             throw new AppError("INVALID_REQUIRED_INPUT")
         }
-
+        console.log({email, username, password})
         const user = await AuthRepo.findUserForLogin({email, username})
+        console.log(user)
         if (user){
             const comparePassword = await bcrypt.compare(password, user?.password!)
             if (!comparePassword){
                 throw new AppError("WRONG_PASSWORD")
             }
             const updatedUser = await AuthRepo.updateTokenVersion(user.id)
-            const tokens = tokenGenerator(updatedUser)
-            return tokens
+            const {access, refresh} = tokenGenerator(updatedUser)
+            return {access, refresh, message: "Đăng nhập thành công"}
         }else{
             throw new AppError("LOGIN_FAILED")
         }
-        
     }
 
     static async refresh(token: string){

@@ -1,0 +1,46 @@
+generator client {
+    provider = "prisma-client-js"
+    output = "../src/generated/prisma"
+}
+
+datasource db {
+    provider = "postgresql"
+}
+
+model Customer{
+    id          Int         @id @default(autoincrement())
+    userId      Int         @unique
+    name        String
+    phoneNumber String
+    dateOfBirth Date
+    createdAt   DateTime   @default(now())
+    updatedAt   DateTime   @updatedAt
+
+    memberships MemberShip[]
+}
+
+enum MemCateLast{
+    ONEMONTH
+    THREEMONTH
+    SIXMONTH
+    FOREVER
+}
+
+model MemberShipCategory{
+    id          Int             @id @default(autoincrement())
+    name        String          @unique
+    last        MemCateLast     
+    discount    Decimal         @db.Decimal(3,2)
+
+    memberships MemberShip[]
+}
+
+model MemberShip{
+    id          Int                 @id @default(autoincrement())
+    memCateId   Int
+    customerId  Int
+    startAt     DateTime
+    endAt       DateTime?        
+    customer    Customer            @relation(fields: [customerId], references: [id])
+    memCate     MemberShipCategory  @relation(fields: [memCateId], references: [id])
+}

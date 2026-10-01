@@ -7,10 +7,13 @@ export class AuthRepo{
     }
 
     static async findUserForLogin(input: {email?: string, username?: string}){
+        console.log("this is in repository",input)
         const user = await prisma.user.findFirst(
             { where: input?.email ? {email: input.email} : {username: input.username || ""} 
         })
+        console.log("after prisma.find:", user)
         return user
+        
     }
 
     static async updateTokenVersion(userId: number){

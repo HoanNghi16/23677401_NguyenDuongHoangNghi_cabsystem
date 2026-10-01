@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package auth;
+
+service AuthService{
+    rpc Login(LoginRequest) returns (LoginResponse);
+    rpc DriverRegister(RegisterRequest) returns (RegisterResponse);
+    rpc CustomerRegister(RegisterRequest) returns (RegisterResponse);
+    rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+}
+
+message LoginRequest{
+    optional string username = 1;
+    optional string email = 2;
+    string password = 3;
+}
+
+message LoginResponse{
+    bool is_error = 1;
+    string error_code = 2;
+    optional string message = 3;
+    optional string access = 4;
+    optional string refresh = 5;
+}
+
+enum Role{
+    CUSTOMER = 0;
+    DRIVER = 1;
+}
+
+
+message RegisterRequest{
+    string username = 1;
+    string email = 2;
+    string password = 4;
+}
+
+message User{
+    string id = 1;
+    string username = 2;
+    string email = 3;
+    Role role = 4;
+}
+
+message RegisterResponse{
+    string message = 1;
+    User user = 2;
+}
+
+
+message RefreshTokenRequest{
+    string refresh = 1;
+}
+
+
+message RefreshTokenResponse{
+    string access = 1;
+    string refresh = 2;
+}

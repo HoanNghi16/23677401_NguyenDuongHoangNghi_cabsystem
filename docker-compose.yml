@@ -1,0 +1,36 @@
+services:
+  auth-db:
+    image: postgres:17
+    container_name: cab-auth-db
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${AUTH_DB_NAME}
+
+    ports:
+      - "5434:5432"
+
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
+
+  customer-db:
+    image: postgres:17
+    container_name: cab-customer-db
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${CUSTOMER_DB_NAME}
+
+    ports:
+      - "5433:5432"
+
+    volumes:
+      - customer-db-data:/var/lib/postgresql/data
+
+volumes:
+  auth-db-data:
+  customer-db-data:
