@@ -5,17 +5,43 @@ export const authRouter = express.Router()
 
 
 authRouter.post('/register/:role',(req, res, next)=>{
-    authClient.register(req.body, (err, response) => {
-        if (err) {
-            console.error("Error calling gRPC register:", err);
-            return res.status(500).json({ error: "Internal server error" });
-        }
-        res.status(201).json(response);
-    });
+    const role = String(req.params.role)
+    console.log(req.body)
+    if (role !== "driver" && role !== "customer"){
+        return res.status(404).json({ error: "NOT_FOUND" });
+    }else{
+        if (role === "driver"){
+            authClient.driverRegister(req.body, (err, response)=>{
+                if (err) {
+                    console.error("Error calling gRPC login:", err);
+                    return res.status(500).json({ error: "Internal server error" });
+                }
+                if (response?.is_error === true){
+                    next(Error(response.error_code))
+                    return
+                }
+                res.status(201).json(response);
+            })
+        }else if (role === "customer"){
+            authClient.customerRegister(req.body, (err, response)=>{
+                if (err) {
+                    console.error("Error calling gRPC login:", err);
+                    return res.status(500).json({ error: "Internal server error" });
+                }
+                console.log(response)
+                if (response?.is_error === true){
+                    next(Error(response.error_code))
+                    return
+                }
+                const {user, message} = response
+                res.status(201).json({user, message});
+            })
+        }   
+    }
 });
 
+
 authRouter.post('/login',(req, res, next)=>{
-    console.log(req.body)
     authClient.login(req.body, (err, response) => {
         if (err) {
             console.error("Error calling gRPC login:", err);
@@ -25,12 +51,14 @@ authRouter.post('/login',(req, res, next)=>{
             next(Error(response.error_code))
             return
         }
-        res.status(200).json(response);
+        const {message, access, refresh} = response
+        res.status(200).json({message, access, refresh});
     });
 });
 
 authRouter.get('/refresh',(req, res, next)=>{
-    authClient.refresh(req.headers.authorization, (err, response) => {
+    const token = req.query.token || req.headers.authorization.split(" ")[1];
+    authClient.refresh({ refresh: token }, (err, response) => {
         if (err) {
             console.error("Error calling gRPC refresh:", err);
             return res.status(500).json({ error: "Internal server error" });

@@ -15,6 +15,19 @@ export const authService ={
             });
         }
     },
+
+    CustomerRegister: async(call: ServerUnaryCall<any, any>, callback: sendUnaryData<any>) => {
+        try{
+            const result = await AuthController.customerRegister(call.request);
+            callback(null, result);
+        }catch(error){
+            callback(null, {
+                error_code: error instanceof Error ? error.message : String(error),
+                is_error: true
+            });
+        }
+    },
+
     DriverRegister: async(call: ServerUnaryCall<any, any>, callback: sendUnaryData<any>) => {
         try{
             const result = await AuthController.driverRegister(call.request);

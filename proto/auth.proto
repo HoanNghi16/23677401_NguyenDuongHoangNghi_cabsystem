@@ -45,6 +45,8 @@ message User{
 message RegisterResponse{
     string message = 1;
     User user = 2;
+    bool is_error = 3;
+    string error_code = 4;
 }
 
 

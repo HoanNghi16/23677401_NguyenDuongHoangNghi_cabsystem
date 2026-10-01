@@ -31,14 +31,16 @@ export class AuthController{
 
     static async register(input: RegisterBody, role: "CUSTOMER" | "DRIVER"){
         const {password, email, username} = input
-        console.log(input)
         if (!password || !email || !username){
             throw new Error("INVALID_INPUT")
         }
+        const existingUser = await AuthRepo.findUserForLogin({email}) || await AuthRepo.findUserForLogin({username})
+        if (existingUser){
+            throw new AppError("USER_ALREADY_EXISTS")
+        }
         const hashedPassword = await bcrypt.hash(password, 10)
         const newUser: User = {...input, password: hashedPassword, role} 
-        console.log(newUser)
-        return AuthRepo.createUser(newUser)
+        return {user: await AuthRepo.createUser(newUser), message: "Đăng ký thành công"}
     }
 
     static async customerRegister(input: RegisterBody){

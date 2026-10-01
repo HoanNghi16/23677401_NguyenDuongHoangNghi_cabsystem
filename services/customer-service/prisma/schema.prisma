@@ -12,7 +12,7 @@ model Customer{
     userId      Int         @unique
     name        String
     phoneNumber String
-    dateOfBirth Date
+    dateOfBirth DateTime
     createdAt   DateTime   @default(now())
     updatedAt   DateTime   @updatedAt
 
