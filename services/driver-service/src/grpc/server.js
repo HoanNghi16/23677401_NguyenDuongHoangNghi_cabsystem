@@ -1,18 +1,20 @@
+import "dotenv/config";
 import grpc from "@grpc/grpc-js";
 import protoLoader from "@grpc/proto-loader";
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { customerService } from "./customer.service.js";
+import { driverService } from "./driver.service.js";
 import { prisma } from "../database/prisma.js";
+import { connectProducer } from "../kafka/producer.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const PROTO_PATH = path.resolve(
     __dirname,
-    "../../../../proto/customer.proto"
+    "../../../../proto/driver.proto"
 );
 
 const packageDefinition = protoLoader.loadSync(
@@ -22,42 +24,41 @@ const packageDefinition = protoLoader.loadSync(
         longs: String,
         enums: String,
         defaults: true,
-        oneofs: true,
+        oneofs: true
     }
 );
 
-const customerProto = grpc.loadPackageDefinition(
-    packageDefinition
-);
+const driverProto =
+    grpc.loadPackageDefinition(packageDefinition);
 
 const server = new grpc.Server();
 
 server.addService(
-    customerProto.customer.CustomerService.service,
-    customerService
+    driverProto.driver.DriverService.service,
+    driverService
 );
 
 const PORT = process.env.PORT;
 
 await prisma.$connect();
+console.log("Driver database connected");
 
-console.log("Customer database connected");
+await connectProducer();
 
 server.bindAsync(
     `0.0.0.0:${PORT}`,
     grpc.ServerCredentials.createInsecure(),
     (error, port) => {
-
         if (error) {
             console.error(
-                "Failed to start Customer gRPC server:",
+                "Failed to start Driver gRPC server:",
                 error
             );
             return;
         }
 
         console.log(
-            `Customer gRPC server running on port ${port}`
+            `Driver gRPC server running on port ${port}`
         );
     }
 );

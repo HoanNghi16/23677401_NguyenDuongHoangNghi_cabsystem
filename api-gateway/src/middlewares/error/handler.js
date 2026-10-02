@@ -1,9 +1,21 @@
 import jwt from "jsonwebtoken";
 
 const ERROR_MESSAGE_CODE = {
+    DRIVER_NOT_FOUND_FOR_APPROVE:{
+        status: 409,
+        message: "Hồ sơ tài xế đã được duyệt"
+    },
+    DRIVER_NOT_FOUND:{
+        status: 404,
+        message: "Không tìm thấy tài xế"
+    },
+    CUSTOMER_ALREADY_EXISTS:{
+        status: 409,
+        message: "Khách hàng đã tồn tại"
+    },
     CUSTOMER_NOT_FOUND: {
         status: 404,
-        message: "Customer không tồn tại"
+        message: "Khách hàng không tồn tại"
     },
 
     INVALID_REQUIRED_INPUT: {

@@ -1,0 +1,97 @@
+syntax = "proto3";
+
+package driver;
+
+service DriverService {
+    rpc CreateDriver(CreateDriverRequest) returns (CreateDriverResponse);
+    rpc GetDriver(GetDriverRequest) returns (GetDriverResponse);
+    rpc GetDriverByUserId(GetDriverByUserIdRequest) returns (GetDriverResponse);
+    rpc GetAllDrivers(GetAllDriversRequest) returns (GetAllDriversResponse);
+    rpc UpdateDriverStatusAndLocation(UpdateDriverStatusAndLocationRequest)
+        returns (UpdateDriverStatusAndLocationResponse);
+    rpc ApproveDriverProfile(ApproveDriverProfileRequest) returns (ApproveDriverProfileResponse);
+}
+
+
+message ApproveDriverProfileRequest {
+    int32 driver_id = 1;
+    string status = 2;
+}
+
+message ApproveDriverProfileResponse {
+    bool is_error = 1;
+    string error_code = 2;
+    optional string message = 3;
+}
+
+message Vehicle {
+    int32 id = 1;
+    string license_plate = 2;
+    string vehicle_type = 3;
+}
+
+message Driver {
+    int32 id = 1;
+    int32 user_id = 2;
+    string name = 3;
+    string phone_number = 4;
+    string status = 5;
+    optional double latitude = 6;
+    optional double longitude = 7;
+    optional Vehicle vehicle = 8;
+    string created_at = 9;
+    string updated_at = 10;
+}
+
+message CreateDriverRequest {
+    int32 user_id = 1;
+    string name = 2;
+    string phone_number = 3;
+    string license_plate = 4;
+    string vehicle_type = 5;
+}
+
+message CreateDriverResponse {
+    bool is_error = 1;
+    string error_code = 2;
+    optional Driver driver = 3;
+}
+
+message GetDriverRequest {
+    int32 id = 1;
+}
+
+message GetDriverByUserIdRequest {
+    int32 user_id = 1;
+}
+
+message GetDriverResponse {
+    bool is_error = 1;
+    string error_code = 2;
+    optional Driver driver = 3;
+}
+
+message GetAllDriversRequest {
+    optional int32 page = 1;
+    optional int32 limit = 2;
+}
+
+message GetAllDriversResponse {
+    bool is_error = 1;
+    string error_code = 2;
+    repeated Driver drivers = 3;
+    int32 total = 4;
+}
+
+message UpdateDriverStatusAndLocationRequest {
+    int32 user_id = 1;
+    string status = 2;
+    double latitude = 3;
+    double longitude = 4;
+}
+
+message UpdateDriverStatusAndLocationResponse {
+    bool is_error = 1;
+    string error_code = 2;
+    optional Driver driver = 3;
+}

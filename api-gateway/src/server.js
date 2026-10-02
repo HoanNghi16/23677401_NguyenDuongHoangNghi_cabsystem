@@ -1,9 +1,10 @@
 import "dotenv/config"
 import express from "express";
-import { authenticate, authorize } from "./middlewares/auth/handler.js";
+import { authenticate } from "./middlewares/auth/handler.js";
 import { authRouter } from "./routes/auth.js";
 import { errorHandler } from "./middlewares/error/handler.js";
 import {customerRouter} from "./routes/customer.js";
+import {driverRouter} from "./routes/driver.js";
 
 const app = express();
 
@@ -20,8 +21,8 @@ app.use('/auth', authRouter)
 
 // Middlewares
 app.use(authenticate)
-// app.use(authorize)
 app.use("/customer", customerRouter)
+app.use("/driver", driverRouter)
 
 
 app.use(errorHandler)

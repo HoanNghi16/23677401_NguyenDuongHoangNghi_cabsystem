@@ -1,0 +1,44 @@
+generator client {
+    provider = "prisma-client-js"
+    output = "../src/generated/prisma"
+}
+
+datasource db {
+    provider = "postgresql"
+}
+
+model Driver {
+  id          Int          @id @default(autoincrement())
+  userId      Int          @unique
+  name        String
+  phoneNumber String
+  status      DriverStatus @default(PENDING)
+  latitude    Float?
+  longitude   Float?
+
+  vehicle Vehicle?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Vehicle {
+  id           Int         @id @default(autoincrement())
+  driverId     Int         @unique
+  licensePlate String      @unique
+  vehicleType  VehicleType @default(MOTORBIKE)
+
+  driver Driver @relation(fields: [driverId], references: [id])
+}
+
+enum DriverStatus {
+  PENDING
+  OFFLINE
+  READY
+  BUSY
+}
+
+enum VehicleType {
+  MOTORBIKE
+  CAR
+}
