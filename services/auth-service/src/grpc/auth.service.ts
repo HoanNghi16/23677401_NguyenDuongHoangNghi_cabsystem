@@ -15,6 +15,21 @@ export const authService ={
             });
         }
     },
+    
+    DriverVerifyOTP: async(call: ServerUnaryCall<any, any>, callback: sendUnaryData<any>)=>{
+        try{
+            console.log(call.request)
+            const result = await AuthController.verifyOTP(call.request)
+            console.log(result)
+            callback(null, result);
+        }catch(error){
+            callback(null, {
+                error_code: error instanceof Error ? error.message : String(error),
+                is_error: true
+            });
+        }
+    }
+    ,
 
     CustomerRegister: async(call: ServerUnaryCall<any, any>, callback: sendUnaryData<any>) => {
         try{

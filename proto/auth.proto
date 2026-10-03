@@ -4,7 +4,8 @@ package auth;
 
 service AuthService{
     rpc Login(LoginRequest) returns (LoginResponse);
-    rpc DriverRegister(RegisterRequest) returns (RegisterResponse);
+    rpc DriverRegister(RegisterRequest) returns (DriverRegisterResponse);
+    rpc DriverVerifyOTP(DriverVerifyOTPRequest) returns (DriverVerifyOTPResponse);
     rpc CustomerRegister(RegisterRequest) returns (RegisterResponse);
     rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
 }
@@ -28,11 +29,32 @@ enum Role{
     DRIVER = 1;
 }
 
+message DriverRegisterResponse{
+    string message = 1;
+    string error_code = 2;
+    bool is_error = 3;
+    optional User user = 4;
+    optional string token = 6;
+}
+
+message DriverVerifyOTPRequest{
+    string otp = 1;
+    string token = 2;
+}
+
+message DriverVerifyOTPResponse{
+    optional string message = 1;
+    string error_code = 2;
+    bool is_error = 3;
+    optional User user = 4;
+    optional Driver profile = 5;
+}
 
 message RegisterRequest{
     string username = 1;
     string email = 2;
     string password = 4;
+    optional Driver profile=5;
 }
 
 message User{
@@ -58,4 +80,13 @@ message RefreshTokenRequest{
 message RefreshTokenResponse{
     string access = 1;
     string refresh = 2;
+}
+
+
+
+message Driver {
+    string name = 1;
+    string phone_number = 2;
+    string license_plate = 3;
+    string vehicle_type = 4;
 }

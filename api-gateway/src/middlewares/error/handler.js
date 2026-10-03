@@ -1,14 +1,25 @@
-import jwt from "jsonwebtoken";
-
 const ERROR_MESSAGE_CODE = {
+    OTP_VERIFY_FAILED:{
+        status: 400,
+        message: "Mã OTP không hợp lệ!"
+    },
     DRIVER_NOT_FOUND_FOR_APPROVE:{
         status: 409,
         message: "Hồ sơ tài xế đã được duyệt"
+    },
+    TOKEN_EXPIRED:{
+        status: 403,
+        message: "Token không hợp lệ!"
     },
     DRIVER_NOT_FOUND:{
         status: 404,
         message: "Không tìm thấy tài xế"
     },
+    USER_ALREADY_EXISTS:{
+        status: 409,
+        message: "Email hoặc số điện thoại đã tồn tại!"
+    }
+    ,
     CUSTOMER_ALREADY_EXISTS:{
         status: 409,
         message: "Khách hàng đã tồn tại"

@@ -3,6 +3,27 @@ import { authClient } from "../grpc/index.js";
 
 export const authRouter = express.Router() 
 
+authRouter.post("/register/verify",(req, res, next)=>{
+    const token = req.query.token;
+    const otp = req.body?.otp;
+    if (!otp){
+        return res.status(400).json({message: "Vui lòng nhập mã OTP"})
+    }
+    if (!token){
+        return res.status(400).json({message: "Token không hợp lệ"})
+    }
+    authClient.DriverVerifyOTP({otp, token}, (err, response)=>{
+        if (err) {
+            console.error("Error calling gRPC login:", err);
+            return res.status(500).json({ error: "Internal server error" });
+        }
+        if (response?.is_error === true){
+            next(Error(response.error_code))
+            return
+        }
+        res.status(201).json(response)
+    })
+})
 
 authRouter.post('/register/:role',(req, res, next)=>{
     const role = String(req.params.role)
@@ -16,6 +37,7 @@ authRouter.post('/register/:role',(req, res, next)=>{
                     console.error("Error calling gRPC login:", err);
                     return res.status(500).json({ error: "Internal server error" });
                 }
+                console.log(response)
                 if (response?.is_error === true){
                     next(Error(response.error_code))
                     return
