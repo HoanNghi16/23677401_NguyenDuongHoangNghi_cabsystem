@@ -1,4 +1,5 @@
 import { CustomerController } from "../controller/customer.js";
+import { CustomerRepository } from "../repository/customer.js";
 
 export const customerService = {
 
@@ -52,10 +53,9 @@ export const customerService = {
 
     GetCustomer: async (call, callback) => {
         try {
+            const id = call.request.id;
 
-            const result = await CustomerController.getCustomer(
-                call.request.id
-            );
+            const result = await CustomerController.getCustomer({id, user_id: call.request.user_id})
 
             callback(null, result);
 

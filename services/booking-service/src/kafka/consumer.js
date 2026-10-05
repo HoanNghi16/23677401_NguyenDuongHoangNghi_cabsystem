@@ -22,10 +22,12 @@ export const startConsumer = async () => {
     await consumer.run({
         eachMessage: async ({ message }) => {
             const data = JSON.parse(message.value.toString());
+            const topic = message?.topic
 
-            console.log("Received driver event:", data);
-
-            // xử lý event ở đây
+            console.log("Topic receive:", topic);
+            console.log("Message: ", data);
+            
+            
         }
     });
 };

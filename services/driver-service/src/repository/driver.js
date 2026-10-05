@@ -92,6 +92,9 @@ export class DriverRepository {
                 status,
                 latitude,
                 longitude
+            },
+            include:{
+                vehicle: true,
             }
         });
     }

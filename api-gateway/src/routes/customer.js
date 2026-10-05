@@ -89,7 +89,7 @@ customerRouter.post(
     (req, res, next) => {
         customerClient.createCustomer(
             {
-                user_id: req.user.userId,
+                user_id: req.user.user_id,
                 name: req.body.name,
                 phone_number: req.body.phone_number,
                 date_of_birth: req.body.date_of_birth

@@ -3,10 +3,12 @@ import { CustomerRepository } from "../repository/customer.js";
 export class CustomerController {
 
     static async createCustomer(data) {
+        console.log(data)
         const existingCustomer =
             await CustomerRepository.findByUserId(data.userId);
 
         if (existingCustomer) {
+            console.log(existingCustomer)
             throw new Error("CUSTOMER_ALREADY_EXISTS");
         }
 
@@ -47,9 +49,9 @@ export class CustomerController {
         };
     }
 
-    static async getCustomer(id) {
+    static async getCustomer({id, user_id}) {
 
-        const customer = await CustomerRepository.findById(id);
+        const customer = await CustomerRepository.findById(id) ?? await CustomerRepository.findByUserId(user_id);
 
         if (!customer) {
             throw new Error("CUSTOMER_NOT_FOUND");

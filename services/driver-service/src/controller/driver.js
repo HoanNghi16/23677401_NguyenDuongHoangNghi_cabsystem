@@ -1,6 +1,7 @@
 import { DriverRepository } from "../repository/driver.js";
 import { DRIVER_PROFILE_APPROVED, DRIVER_STATUS_LOCATION_UPDATED } from "../kafka/topic.js";
 import { producer } from "../kafka/producer.js";
+import { BookingClient } from "../grpc/booking.client.js";
 export class DriverController {
 
     static async approveDriverProfile(driverData){
@@ -149,19 +150,20 @@ export class DriverController {
             );
 
         if (updatedDriver) {
-            await producer.send({
-                topic: DRIVER_STATUS_LOCATION_UPDATED,
-                messages: [{
-                    key: String(updatedDriver.id),
-                    value: JSON.stringify({
-                        driver_id: updatedDriver.id,
-                        status: updatedDriver.status,
+            BookingClient.UpdateDriverAvailability({
+                    driver_id: updatedDriver.id,
+                    status: updatedDriver.status,
+                    location:{
                         latitude: updatedDriver.latitude,
-                        longitude: updatedDriver.longitude
-                    })
-                }]
-            })
-
+                        longitude: updatedDriver.longitude,
+                    },
+                    vehicle_type: updatedDriver.vehicle.vehicleType,
+                    license_plate: updatedDriver.vehicle.licensePlate,
+                },(err, response)=>{
+                    if (response.is_error){
+                        return response
+                    }
+                })
         }
         
         return {

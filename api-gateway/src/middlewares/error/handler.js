@@ -1,4 +1,8 @@
 const ERROR_MESSAGE_CODE = {
+    NO_AVAILABLE_DRIVER:{
+        status: 404,
+        message: "Không thấy tài xế nào ở gần bạn!"
+    },
     OTP_VERIFY_FAILED:{
         status: 400,
         message: "Mã OTP không hợp lệ!"

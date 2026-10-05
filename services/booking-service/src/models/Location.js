@@ -13,3 +13,6 @@ export const LocationSchema = new mongoose.Schema({
         type: String
     }
 })
+
+
+export const Location = mongoose.model("Location", LocationSchema)

@@ -6,7 +6,7 @@ export const BookingSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
-    pickup_point: LocationSchema,
+    pickup: LocationSchema,
     destination: LocationSchema,
     driver_id: {
         type: Number,
@@ -14,9 +14,15 @@ export const BookingSchema = new mongoose.Schema({
     fare:{
         type: Number,
     },
+    offer_list: [{
+        type: Number,
+    }]
+    ,
     status:{
         type: String, 
-        enum: ["FINDING", "OFFERING", "PICKING_UP", "RIDING", "COMPLETED", "CANCELLED"],
-        default: "FINDING"
+        enum: ["OFFERING", "PICKING_UP", "RIDING", "COMPLETED", "CANCELLED"],
+        default: "OFFERING"
     }
 })
+
+export const Booking = mongoose.model("Booking", BookingSchema)

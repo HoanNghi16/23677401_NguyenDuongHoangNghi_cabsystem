@@ -93,8 +93,8 @@ driverRouter.patch(
             {
                 user_id: req.user.user_id,
                 status: req.body.status,
-                latitude: req.body.latitude,
-                longitude: req.body.longitude
+                latitude: req.body.lat,
+                longitude: req.body.long
             },
             (error, response) => {
                 if (error) {
