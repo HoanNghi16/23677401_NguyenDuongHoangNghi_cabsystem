@@ -1,4 +1,12 @@
 services:
+  notification-db:
+    image: mongo:8
+    container_name: cab-notification-db
+    restart: unless-stopped
+    ports:
+      - "27018:27017"
+    volumes:
+      - notification-db-data:/data/db
   booking-db:
     image: mongo:8
     container_name: cab-booking-db
@@ -102,3 +110,4 @@ volumes:
   driver-db-data:
   kafka-data:
   booking-db-data:
+  notification-db-data:

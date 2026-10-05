@@ -20,8 +20,11 @@ export const BookingSchema = new mongoose.Schema({
     ,
     status:{
         type: String, 
-        enum: ["OFFERING", "PICKING_UP", "RIDING", "COMPLETED", "CANCELLED"],
+        enum: ["OFFERING", "COMPLETED", "CANCELLED"],
         default: "OFFERING"
+    },
+    cancel_reason:{
+        type: String,
     }
 })
 
