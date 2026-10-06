@@ -1,0 +1,36 @@
+generator client {
+    provider = "prisma-client-js"
+    output   = "../src/generated/prisma"
+}
+
+datasource db {
+    provider = "postgresql"
+}
+
+model Trip {
+    id              Int        @id @default(autoincrement())
+    bookingId       String     @unique
+
+    customerUserId  Int
+    customerId      Int
+    driverId        Int
+
+    pickupLatitude  Float
+    pickupLongitude Float
+
+    destinationLatitude  Float
+    destinationLongitude Float
+
+    fare       Float
+    status     TripStatus @default(PICKING_UP)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+enum TripStatus {
+    PICKING_UP
+    RIDING
+    COMPLETED
+    CANCELLED
+}

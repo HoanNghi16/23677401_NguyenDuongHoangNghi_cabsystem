@@ -2,7 +2,7 @@ import { prisma } from "../database/prisma.js";
 
 export class DriverRepository {
 
-    static async approveDriver({driverId, status}){
+    static async approveDriver({driverId}){
         console.log(driverId)
         const driver = await prisma.driver.findFirst({
             where:{
@@ -12,17 +12,17 @@ export class DriverRepository {
         if (!driver){
             throw Error("DRIVER_NOT_FOUND")
         }
-        if (driver.status != "PENDING"){
-            throw Error("DRIVER_NOT_FOUND_FOR_APPROVE")
+        if (driver.isApproved === false){
+            throw Error("DRIVER_WAS_APPROVED")
         }
 
         return prisma.driver.update({
             where:{
                 id: driver.id,
-                status: "PENDING",
+                isApproved: false,
             },
             data: {
-                status: status,
+                isApproved: true,
             }
         })
     }

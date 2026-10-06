@@ -1,4 +1,8 @@
 const ERROR_MESSAGE_CODE = {
+    OFFER_NOT_ASSIGNED_TO_DRIVER:{
+        status: 403,
+        message: "Bạn không có quyền thao tác với offer này!"
+    },
     NO_AVAILABLE_DRIVER:{
         status: 404,
         message: "Không thấy tài xế nào ở gần bạn!"
@@ -46,6 +50,10 @@ const ERROR_MESSAGE_CODE = {
     WRONG_PASSWORD: {
         status: 401,
         message: "Mật khẩu không chính xác"
+    },
+    BOOKING_NOT_FOUND:{
+        status: 400,
+        message: "Không tìm thấy booking có ID này",
     }
 }
 

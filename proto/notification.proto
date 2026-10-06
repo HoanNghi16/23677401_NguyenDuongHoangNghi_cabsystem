@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package notification;
+
+service NotificationService{
+    rpc GetNotifications(NotificationRequest) returns (NotificationResponse);
+}
+
+message NotificationRequest{
+    int32 user_id = 1;
+    int page = 2;
+}
+
+message NotificationResponse{
+    bool is_error = 1;
+    string error_code = 2;
+    repeated Notification notifications = 3;
+}
+
+message Notification{
+    int32 user_id = 1;
+    string category = 2;
+    string title = 3;
+    google.protobuf.Struct content = 4;
+}
+

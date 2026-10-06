@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package trip;
+
+service TripService {
+    rpc CreateTrip(CreateTripRequest)
+        returns (CreateTripResponse);
+}
+
+message CreateTripRequest {
+    string booking_id = 1;
+
+    int32 customer_user_id = 2;
+    int32 customer_id = 3;
+    int32 driver_id = 4;
+
+    Location pickup = 5;
+    Location destination = 6;
+
+    double fare = 7;
+}
+
+message CreateTripResponse {
+    bool is_error = 1;
+    string error_code = 2;
+    Trip trip = 3;
+}
+
+message Trip {
+    int32 id = 1;
+    string booking_id = 2;
+
+    int32 customer_user_id = 3;
+    int32 customer_id = 4;
+    int32 driver_id = 5;
+
+    Location pickup = 6;
+    Location destination = 7;
+
+    double fare = 8;
+    string status = 9;
+}
+
+message Location {
+    double latitude = 1;
+    double longitude = 2;
+}

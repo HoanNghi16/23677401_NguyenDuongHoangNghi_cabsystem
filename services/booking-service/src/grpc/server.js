@@ -8,6 +8,10 @@ import { fileURLToPath } from "node:url";
 import { BookingService } from "./booking.service.js";
 import { connectDB } from "../database/db.js";
 
+import { connectProducer } from "../kafka/producer.js";
+
+await connectProducer()
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 

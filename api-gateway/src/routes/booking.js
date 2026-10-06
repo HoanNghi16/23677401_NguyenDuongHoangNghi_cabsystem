@@ -47,6 +47,7 @@ bookingRouter.post("/", authorize("CUSTOMER"), (req, res, next)=>{
             return next(new Error(response.error_code))
         }
         const data = {
+            user_id: req.user.user_id,
             customer_id: response.customer.id,
             pickup: {
                 latitude: req.body?.pickup?.lat,
@@ -68,4 +69,42 @@ bookingRouter.post("/", authorize("CUSTOMER"), (req, res, next)=>{
             return res.status(201).json(response)
         })
     })
+})
+
+
+bookingRouter.get("/:booking_id", authorize("DRIVER", "CUSTOMER"),(req, res, next)=>{
+    bookingClient.GetBooking({
+        user_id: req.user.user_id,
+        booking_id: req.params.booking_id,
+    }, (err, response)=>{
+        if (err){
+            return res.status(500).json({error: err})
+        }
+        if (response.is_error){
+            return next(new Error(response.error_code))
+        }
+        return res.status(200).json(response)
+    })
+})
+
+
+bookingRouter.patch("/:booking_id/offer", authorize("DRIVER"), (req, res, next)=>{
+    const respond = req.body.respond
+    if (!respond && respond != "ACCEPT" && respond != "DENY"){
+        return res.status(400).json({message: "Vui lòng nhập respond"})
+    }else{
+        bookingClient.RespondToOffer({
+            user_id: req.user.user_id,
+            booking_id: req.params.booking_id,
+            respond: respond
+        }, (err, response)=>{
+            if (err){
+                return res.status(500).json({err})
+            }
+            if (response.is_error === true){
+                return next(new Error(response.error_code))
+            }
+            return res.status(200).json(response)
+        })
+    }
 })

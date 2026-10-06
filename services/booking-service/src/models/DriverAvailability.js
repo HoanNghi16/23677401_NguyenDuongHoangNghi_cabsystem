@@ -3,6 +3,11 @@ import mongoose from "mongoose";
 import { LocationSchema } from "./Location.js";
 
 export const DriverAvailabilitySchema = new mongoose.Schema({
+    driver_user_id: {
+        type: Number,
+        required: true,
+        unique: true,
+    },
     driver_id: {
         type: Number,
         required: true,

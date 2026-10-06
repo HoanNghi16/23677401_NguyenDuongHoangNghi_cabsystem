@@ -151,6 +151,7 @@ export class DriverController {
 
         if (updatedDriver) {
             BookingClient.UpdateDriverAvailability({
+                    user_id: updatedDriver.userId,
                     driver_id: updatedDriver.id,
                     status: updatedDriver.status,
                     location:{

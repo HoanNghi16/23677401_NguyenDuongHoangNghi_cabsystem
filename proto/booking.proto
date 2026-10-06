@@ -7,7 +7,36 @@ service BookingService {
         returns (DriverAvailabilityResponse);
     rpc CreateBooking(BookingRequest) returns (BookingResponse);
     rpc GetBookings(GetBookingsRequest) returns (GetBookingsResponse);
+    rpc GetBooking(GetBookingRequest) returns (GetBookingResponse);
+    rpc RespondToOffer(RespondToOfferRequest) returns (RespondToOfferResponse);
 }
+
+message RespondToOfferRequest{
+    string booking_id = 1;
+    int32 user_id = 2;
+    string respond = 3;
+}
+
+
+message RespondToOfferResponse{
+    bool is_error = 1;
+    string error_code = 2;
+    optional Booking booking = 3;
+    optional string message = 4;
+}
+
+
+message GetBookingRequest{
+    int32 user_id = 1;
+    string booking_id = 2;
+}
+
+message GetBookingResponse{
+    bool is_error = 1;
+    string error_code = 2;
+    optional Booking booking = 3;
+}
+
 
 message GetBookingsRequest{
     int32 customer_id = 1;
@@ -21,10 +50,11 @@ message GetBookingsResponse{
 
 
 message BookingRequest{
-    int32 customer_id = 1;
-    Location pickup = 2;
-    Location destination = 3;
-    string vehicle_type = 4;
+    int32 user_id = 1;
+    int32 customer_id = 2;
+    Location pickup = 3;
+    Location destination = 4;
+    string vehicle_type = 5;
 }
 
 
@@ -35,20 +65,22 @@ message BookingResponse{
 }
 
 message Booking{
-    int32 customer_id = 1;
-    optional int32 driver_id = 2;
-    Location pickup = 3;
-    Location destination = 4;
-    double fare = 5;
-    string status = 6;
+    string booking_id = 1;
+    int32 customer_id = 2;
+    optional int32 driver_id = 3;
+    Location pickup = 4;
+    Location destination = 5;
+    double fare = 6;
+    string status = 7;
 }
 
 message DriverAvailabilityRequest {
-    int32 driver_id = 1;
-    string vehicle_type = 2;
-    string license_plate = 3;
-    string status = 4;
-    Location location = 5;
+    int32 user_id = 1;
+    int32 driver_id = 2;
+    string vehicle_type = 3;
+    string license_plate = 4;
+    string status = 5;
+    Location location = 6;
 }
 
 message DriverAvailabilityResponse {

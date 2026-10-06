@@ -1,4 +1,19 @@
 services:
+  trip-db:
+    image: postgres:17
+    container_name: cab-trip-db
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${TRIP_DB_NAME}
+
+    ports:
+      - "5436:5432"
+
+    volumes:
+      - trip-db-data:/var/lib/postgresql/data
   notification-db:
     image: mongo:8
     container_name: cab-notification-db
@@ -111,3 +126,4 @@ volumes:
   kafka-data:
   booking-db-data:
   notification-db-data:
+  trip-db-data:

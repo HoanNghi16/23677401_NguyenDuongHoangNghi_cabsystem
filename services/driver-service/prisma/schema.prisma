@@ -12,10 +12,10 @@ model Driver {
   userId      Int          @unique
   name        String
   phoneNumber String
-  status      DriverStatus @default(PENDING)
+  status      DriverStatus @default(OFFLINE)
   latitude    Float?
   longitude   Float?
-
+  isApproved Boolean     @default(false)
   vehicle Vehicle?
 
   createdAt DateTime @default(now())
@@ -32,7 +32,6 @@ model Vehicle {
 }
 
 enum DriverStatus {
-  PENDING
   OFFLINE
   READY
   BUSY

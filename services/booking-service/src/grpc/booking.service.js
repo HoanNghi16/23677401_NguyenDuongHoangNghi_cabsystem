@@ -36,6 +36,24 @@ export const BookingService = {
         }
     },
 
+    GetBooking: async(call, callback)=>{
+        try{
+            const result = await BookingController.GetBooking(call.request)
+            callback(null, result)
+        }catch{
+            callback(null, {is_error: true, error_code: "BOOKING_NOT_FOUND"})
+        }
+    },
+    RespondToOffer: async(call, callback)=>{
+        try{
+            const result = await BookingController.RespondToOffer(call.request)
+            callback(null, result)
+        }catch(error){
+            console.log(error)
+            callback(null, {is_error: true, error_code: "UNKNOWN_ERROR"})
+        }
+    }
+    ,
     GetBookings: async (call, callback) => {
         try {
             const result =

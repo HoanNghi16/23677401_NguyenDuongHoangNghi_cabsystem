@@ -2,6 +2,10 @@ import mongoose from "mongoose";
 import { LocationSchema } from "./Location.js";
 
 export const BookingSchema = new mongoose.Schema({
+    customer_user_id: {
+        type: Number,
+        required: true,
+    },
     customer_id: {
         type: Number,
         required: true,
@@ -17,6 +21,10 @@ export const BookingSchema = new mongoose.Schema({
     offer_list: [{
         type: Number,
     }]
+    ,
+    current_offer_driver_id: {
+        type: Number,
+    }
     ,
     status:{
         type: String, 
