@@ -25,9 +25,14 @@ export const startConsumer = async () => {
         fromBeginning: false
     });
 
+    await consumer.subscribe({
+        topic: TOPICS.TRIP_CREATED,
+        fromBeginning: false
+    });
+
     await consumer.run({
 
-        eachMessage: async ({ message }) => {
+        eachMessage: async ({ topic, message }) => {
 
             try {
 
@@ -35,8 +40,23 @@ export const startConsumer = async () => {
                     message.value.toString()
                 );
 
-                await NotificationController
-                    .CreateOfferNotification(data);
+                switch (topic) {
+
+                    case TOPICS.OFFER_CREATED:
+
+                        await NotificationController
+                            .CreateOfferNotification(data);
+
+                        break;
+
+                    case TOPICS.TRIP_CREATED:
+
+                        await NotificationController
+                            .CreateTripNotification(data);
+
+                        break;
+
+                }
 
             } catch (error) {
 

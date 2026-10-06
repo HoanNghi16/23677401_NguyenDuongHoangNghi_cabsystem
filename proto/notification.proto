@@ -8,7 +8,7 @@ service NotificationService{
 
 message NotificationRequest{
     int32 user_id = 1;
-    int page = 2;
+    int32 page = 2;
 }
 
 message NotificationResponse{
@@ -21,6 +21,6 @@ message Notification{
     int32 user_id = 1;
     string category = 2;
     string title = 3;
-    google.protobuf.Struct content = 4;
+    string content = 4;
 }
 

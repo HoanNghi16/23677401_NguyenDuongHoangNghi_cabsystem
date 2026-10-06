@@ -6,6 +6,7 @@ import { errorHandler } from "./middlewares/error/handler.js";
 import {customerRouter} from "./routes/customer.js";
 import {driverRouter} from "./routes/driver.js";
 import { bookingRouter } from "./routes/booking.js";
+import { notiRouter } from "./routes/notification.js";
 
 const app = express();
 
@@ -25,7 +26,7 @@ app.use(authenticate)
 app.use("/customer", customerRouter)
 app.use("/driver", driverRouter)
 app.use("/booking", bookingRouter)
-
+app.use("/notification", notiRouter)
 
 app.use(errorHandler)
 // run server

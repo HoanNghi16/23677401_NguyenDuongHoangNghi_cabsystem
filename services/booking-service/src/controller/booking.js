@@ -1,3 +1,4 @@
+import { TripClient } from "../grpc/trip.client.js";
 import { publishOfferCreated } from "../kafka/producer.js";
 import { Booking } from "../models/Booking.js";
 import { DriverAvailability } from "../models/DriverAvailability.js"
@@ -73,7 +74,7 @@ export class BookingController{
             customer_id,
             page
         } = data;
-
+        console.log(data)
         const limit = 10;
         const currentPage = page > 0 ? page : 1;
         const skip = (currentPage - 1) * limit;
@@ -85,10 +86,9 @@ export class BookingController{
             .sort({ _id: -1 })
             .skip(skip)
             .limit(limit);
-
         return {
             page: currentPage,
-            bookings
+            bookings: bookings.map(booking => ({...booking, booking_id: `${booking._id}`}))
         };
     }
 
@@ -292,29 +292,78 @@ export class BookingController{
         // ACCEPT
         // =========================
         if (respond === "ACCEPT") {
-
-            const updatedBooking =
-                await Booking.findOneAndUpdate(
-                    {
-                        _id: booking._id,
-                        current_offer_driver_id: driver.driver_id
-                    },
-                    {
-                        $set: {
-                            driver_id: driver.driver_id,
-                            offer_list: [],
-                            current_offer_driver_id: null,
-                            status: "COMPLETED"
-                        }
-                    },
-                    {
-                        returnDocument: "after"
+            const updatedBooking = await Booking.findOneAndUpdate(
+                {
+                    _id: booking._id,
+                    current_offer_driver_id: driver.driver_id
+                },
+                {
+                    $set: {
+                        driver_id: driver.driver_id,
+                        offer_list: [],
+                        current_offer_driver_id: null,
+                        status: "COMPLETED"
                     }
-                );
+                },
+                {
+                    returnDocument: "after"
+                }
+            );
+
+            if (!updatedBooking) {
+                return {
+                    is_error: true,
+                    error_code: "BOOKING_UPDATE_FAILED"
+                };
+            }
+
+            const tripResponse = await TripClient.CreateTrip({
+                booking_id: updatedBooking._id.toString(),
+
+                customer_user_id: updatedBooking.customer_user_id,
+                customer_id: updatedBooking.customer_id,
+                driver_id: updatedBooking.driver_id,
+
+                pickup: {
+                    latitude: updatedBooking.pickup.latitude,
+                    longitude: updatedBooking.pickup.longitude
+                },
+
+                destination: {
+                    latitude: updatedBooking.destination.latitude,
+                    longitude: updatedBooking.destination.longitude
+                },
+
+                fare: updatedBooking.fare ?? 0
+            });
+
+            if (tripResponse.is_error) {
+                return {
+                    is_error: true,
+                    error_code: tripResponse.error_code
+                };
+            }
 
             return {
                 is_error: false,
-                booking: updatedBooking
+                booking: {
+                    booking_id: updatedBooking._id.toString(),
+                    customer_id: updatedBooking.customer_id,
+                    driver_id: updatedBooking.driver_id,
+
+                    pickup: {
+                        latitude: updatedBooking.pickup.latitude,
+                        longitude: updatedBooking.pickup.longitude
+                    },
+
+                    destination: {
+                        latitude: updatedBooking.destination.latitude,
+                        longitude: updatedBooking.destination.longitude
+                    },
+
+                    fare: updatedBooking.fare ?? 0,
+                    status: updatedBooking.status
+                }
             };
         }
 
