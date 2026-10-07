@@ -21,6 +21,7 @@ model Trip {
     destinationLatitude  Float
     destinationLongitude Float
 
+    cancelReason    String?
     fare       Float
     status     TripStatus @default(PICKING_UP)
 

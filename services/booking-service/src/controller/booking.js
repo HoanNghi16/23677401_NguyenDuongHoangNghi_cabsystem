@@ -317,6 +317,12 @@ export class BookingController{
                 };
             }
 
+            await DriverAvailability.findOneAndUpdate({
+                driver_id: updatedBooking.driver_id
+            },{
+                status: "BUSY"
+            })
+
             const tripResponse = await TripClient.CreateTrip({
                 booking_id: updatedBooking._id.toString(),
 

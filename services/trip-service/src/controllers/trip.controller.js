@@ -1,9 +1,9 @@
+import { producer } from "../../../driver-service/src/kafka/producer.js";
 import { TripRepository } from "../repositories/trip.repository.js";
-import { publishTripCreated } from "../kafka/producer.js";
 
-export class TripController {
+export const TripController = {
 
-    static async CreateTrip(data) {
+    CreateTrip: async (data) => {
 
         const {
             booking_id,
@@ -29,21 +29,10 @@ export class TripController {
             };
         }
 
-        if (
-            pickup.latitude === undefined ||
-            pickup.longitude === undefined ||
-            destination.latitude === undefined ||
-            destination.longitude === undefined
-        ) {
-            return {
-                is_error: true,
-                error_code: "INVALID_LOCATION"
-            };
-        }
-
-        // Prevent duplicate trip for the same booking
         const existingTrip =
-            await TripRepository.findTripByBookingId(booking_id);
+            await TripRepository.findTripByBookingId(
+                booking_id
+            );
 
         if (existingTrip) {
             return {
@@ -52,52 +41,388 @@ export class TripController {
             };
         }
 
-        const trip = await TripRepository.createTrip({
-            bookingId: booking_id,
+        const trip =
+            await TripRepository.createTrip({
+                bookingId: booking_id,
 
-            customerUserId: Number(customer_user_id),
-            customerId: Number(customer_id),
-            driverId: Number(driver_id),
+                customerUserId: customer_user_id,
+                customerId: customer_id,
+                driverId: driver_id,
 
-            pickupLatitude: Number(pickup.latitude),
-            pickupLongitude: Number(pickup.longitude),
+                pickupLatitude: pickup.latitude,
+                pickupLongitude: pickup.longitude,
 
-            destinationLatitude: Number(destination.latitude),
-            destinationLongitude: Number(destination.longitude),
+                destinationLatitude:
+                    destination.latitude,
+                destinationLongitude:
+                    destination.longitude,
 
-            fare: Number(fare ?? 0)
-        });
-
-        await publishTripCreated({
-            trip_id: trip.id,
-            booking_id: trip.bookingId,
-            customer_user_id: trip.customerUserId
-        });
+                fare: fare ?? 0
+            });
 
         return {
             is_error: false,
-
             trip: {
                 id: trip.id,
                 booking_id: trip.bookingId,
 
-                customer_user_id: trip.customerUserId,
-                customer_id: trip.customerId,
-                driver_id: trip.driverId,
+                customer_user_id:
+                    trip.customerUserId,
+
+                customer_id:
+                    trip.customerId,
+
+                driver_id:
+                    trip.driverId,
 
                 pickup: {
-                    latitude: trip.pickupLatitude,
-                    longitude: trip.pickupLongitude
+                    latitude:
+                        trip.pickupLatitude,
+
+                    longitude:
+                        trip.pickupLongitude
                 },
 
                 destination: {
-                    latitude: trip.destinationLatitude,
-                    longitude: trip.destinationLongitude
+                    latitude:
+                        trip.destinationLatitude,
+
+                    longitude:
+                        trip.destinationLongitude
                 },
 
                 fare: trip.fare,
                 status: trip.status
             }
         };
+    },
+
+
+    GetTrip: async (data) => {
+
+        const {
+            id,
+            booking_id
+        } = data;
+
+        if (!id && !booking_id) {
+            return {
+                is_error: true,
+                error_code: "TRIP_IDENTIFIER_REQUIRED"
+            };
+        }
+
+        let trip;
+
+        if (id) {
+
+            trip =
+                await TripRepository.findTripById(
+                    Number(id)
+                );
+
+        } else {
+
+            trip =
+                await TripRepository.findTripByBookingId(
+                    booking_id
+                );
+
+        }
+
+        if (!trip) {
+            return {
+                is_error: true,
+                error_code: "TRIP_NOT_FOUND"
+            };
+        }
+
+        return {
+            is_error: false,
+            trip: {
+                id: trip.id,
+
+                booking_id:
+                    trip.bookingId,
+
+                customer_user_id:
+                    trip.customerUserId,
+
+                customer_id:
+                    trip.customerId,
+
+                driver_id:
+                    trip.driverId,
+
+                pickup: {
+                    latitude:
+                        trip.pickupLatitude,
+
+                    longitude:
+                        trip.pickupLongitude
+                },
+
+                destination: {
+                    latitude:
+                        trip.destinationLatitude,
+
+                    longitude:
+                        trip.destinationLongitude
+                },
+
+                fare: trip.fare,
+
+                status:
+                    trip.status
+            }
+        };
+    },
+
+
+    CancelTrip: async (data) => {
+
+        const {
+            booking_id,
+            id,
+            cancel_reason
+        } = data;
+
+        if (!id && !booking_id) {
+            return {
+                is_error: true,
+                error_code: "TRIP_IDENTIFIER_REQUIRED"
+            };
+        }
+
+        if (!cancel_reason) {
+            return {
+                is_error: true,
+                error_code: "CANCEL_REASON_REQUIRED"
+            };
+        }
+
+        let trip;
+
+        if (id) {
+
+            trip =
+                await TripRepository.findTripById(
+                    Number(id)
+                );
+
+        } else {
+
+            trip =
+                await TripRepository.findTripByBookingId(
+                    booking_id
+                );
+
+        }
+
+        if (!trip) {
+            return {
+                is_error: true,
+                error_code: "TRIP_NOT_FOUND"
+            };
+        }
+
+        if (trip.status === "CANCELLED") {
+            return {
+                is_error: true,
+                error_code: "TRIP_ALREADY_CANCELLED"
+            };
+        }
+
+        if (trip.status !== "PICKING_UP") {
+            return {
+                is_error: true,
+                error_code: "TRIP_ALREADY_START"
+            };
+        }
+
+        const cancelledTrip =
+            await TripRepository.cancelTrip(
+                trip.id,
+                cancel_reason
+            );
+
+        
+        return {
+            is_error: false,
+            trip: {
+                id: cancelledTrip.id,
+
+                booking_id:
+                    cancelledTrip.bookingId,
+
+                customer_user_id:
+                    cancelledTrip.customerUserId,
+
+                customer_id:
+                    cancelledTrip.customerId,
+
+                driver_id:
+                    cancelledTrip.driverId,
+
+                pickup: {
+                    latitude:
+                        cancelledTrip.pickupLatitude,
+
+                    longitude:
+                        cancelledTrip.pickupLongitude
+                },
+
+                destination: {
+                    latitude:
+                        cancelledTrip.destinationLatitude,
+
+                    longitude:
+                        cancelledTrip.destinationLongitude
+                },
+
+                fare:
+                    cancelledTrip.fare,
+
+                status:
+                    cancelledTrip.status
+            }
+        };
+    },
+
+    UpdateTripStatus: async (data) => {
+
+        const {
+            id,
+            booking_id,
+            status
+        } = data;
+
+        if (!id && !booking_id) {
+            return {
+                is_error: true,
+                error_code: "TRIP_IDENTIFIER_REQUIRED"
+            };
+        }
+
+        if (!status) {
+            return {
+                is_error: true,
+                error_code: "TRIP_STATUS_REQUIRED"
+            };
+        }
+
+        if (
+            status !== "RIDING" &&
+            status !== "COMPLETED"
+        ) {
+            return {
+                is_error: true,
+                error_code: "INVALID_TRIP_STATUS"
+            };
+        }
+
+        let trip;
+
+        if (id) {
+
+            trip =
+                await TripRepository.findTripById(
+                    Number(id)
+                );
+
+        } else {
+
+            trip =
+                await TripRepository.findTripByBookingId(
+                    booking_id
+                );
+        }
+
+        if (!trip) {
+            return {
+                is_error: true,
+                error_code: "TRIP_NOT_FOUND"
+            };
+        }
+
+        /*
+        * PICKING_UP -> RIDING
+        */
+        if (trip.status === "CANCELLED"){
+            return {
+                is_error: true,
+                error_code: "TRIP_ALREADY_CANCELLED"
+            }
+        }
+        if (
+            status === "RIDING" &&
+            trip.status !== "PICKING_UP"
+        ) {
+            return {
+                is_error: true,
+                error_code: "INVALID_TRIP_TRANSITION"
+            };
+        }
+
+        /*
+        * RIDING -> COMPLETED
+        */
+        if (
+            status === "COMPLETED" &&
+            trip.status !== "RIDING"
+        ) {
+            return {
+                is_error: true,
+                error_code: "INVALID_TRIP_TRANSITION"
+            };
+        }
+
+        const updatedTrip =
+            await TripRepository.updateTripStatus(
+                trip.id,
+                status
+            );
+
+        return {
+            is_error: false,
+            trip: {
+                id: updatedTrip.id,
+
+                booking_id:
+                    updatedTrip.bookingId,
+
+                customer_user_id:
+                    updatedTrip.customerUserId,
+
+                customer_id:
+                    updatedTrip.customerId,
+
+                driver_id:
+                    updatedTrip.driverId,
+
+                pickup: {
+                    latitude:
+                        updatedTrip.pickupLatitude,
+
+                    longitude:
+                        updatedTrip.pickupLongitude
+                },
+
+                destination: {
+                    latitude:
+                        updatedTrip.destinationLatitude,
+
+                    longitude:
+                        updatedTrip.destinationLongitude
+                },
+
+                fare:
+                    updatedTrip.fare,
+
+                status:
+                    updatedTrip.status
+            }
+        };
     }
-}
+
+};

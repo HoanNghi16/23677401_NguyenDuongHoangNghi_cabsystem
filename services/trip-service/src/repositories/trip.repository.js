@@ -23,4 +23,28 @@ export class TripRepository {
             }
         });
     }
+
+    static async cancelTrip(tripId, cancelReason) {
+        return prisma.trip.update({
+            where: {
+                id: tripId
+            },
+            data: {
+                status: "CANCELLED",
+                cancelReason
+            }
+        });
+    }
+
+    static async updateTripStatus(tripId, status) {
+        return prisma.trip.update({
+            where: {
+                id: tripId
+            },
+            data: {
+                status
+            }
+        });
+    }
+
 }

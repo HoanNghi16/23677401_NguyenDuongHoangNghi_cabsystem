@@ -5,6 +5,48 @@ package trip;
 service TripService {
     rpc CreateTrip(CreateTripRequest)
         returns (CreateTripResponse);
+    rpc GetTrip(GetTripRequest)
+        returns (GetTripResponse);
+
+    rpc CancelTrip(CancelTripRequest)
+        returns (CancelTripResponse);
+    rpc UpdateTripStatus(UpdateTripStatusRequest)
+        returns (UpdateTripStatusResponse);
+}
+
+message UpdateTripStatusRequest {
+    optional int32 id = 1;
+    optional string booking_id = 2;
+    string status = 3;
+}
+
+message UpdateTripStatusResponse {
+    bool is_error = 1;
+    string error_code = 2;
+    Trip trip = 3;
+}
+
+message GetTripRequest {
+    optional int32 id = 1;
+    optional string booking_id = 2;
+}
+
+message GetTripResponse {
+    bool is_error = 1;
+    string error_code = 2;
+    Trip trip = 3;
+}
+
+message CancelTripRequest {
+    optional string booking_id = 1;
+    optional int32 id = 2;
+    string cancel_reason = 3;
+}
+
+message CancelTripResponse {
+    bool is_error = 1;
+    string error_code = 2;
+    Trip trip = 3;
 }
 
 message CreateTripRequest {

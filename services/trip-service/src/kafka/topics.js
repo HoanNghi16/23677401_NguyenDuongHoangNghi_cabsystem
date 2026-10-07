@@ -1,3 +1,3 @@
 export const TOPICS = {
-    TRIP_CREATED: "trip-created"
+    TRIP_CREATED: "trip-created",
 };

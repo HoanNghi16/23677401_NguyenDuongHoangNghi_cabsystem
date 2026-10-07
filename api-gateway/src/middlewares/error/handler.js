@@ -1,4 +1,12 @@
 const ERROR_MESSAGE_CODE = {
+    TRIP_NOT_FOUND:{
+        status: 404,
+        message: "Không tìm thấy chuyến đi",
+    },
+    TRIP_ALREADY_CANCELLED:{
+        status: 403,
+        message: "Chuyến đi đã bị hủy!"
+    },
     OFFER_NOT_ASSIGNED_TO_DRIVER:{
         status: 403,
         message: "Bạn không có quyền thao tác với offer này!"

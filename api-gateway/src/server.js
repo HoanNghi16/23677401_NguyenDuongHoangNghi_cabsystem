@@ -7,6 +7,7 @@ import {customerRouter} from "./routes/customer.js";
 import {driverRouter} from "./routes/driver.js";
 import { bookingRouter } from "./routes/booking.js";
 import { notiRouter } from "./routes/notification.js";
+import { tripRouter } from "./routes/trip.js";
 
 const app = express();
 
@@ -27,7 +28,9 @@ app.use("/customer", customerRouter)
 app.use("/driver", driverRouter)
 app.use("/booking", bookingRouter)
 app.use("/notification", notiRouter)
+app.use("/trip", tripRouter)
 
+// App error handler 
 app.use(errorHandler)
 // run server
 const port = process.env.PORT
