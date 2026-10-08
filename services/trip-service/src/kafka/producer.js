@@ -25,3 +25,15 @@ export const publishTripCreated = async (data) => {
         ]
     });
 };
+
+export const publishTripCompleted = async (data) => {
+    await producer.send({
+        topic: TOPICS.TRIP_COMPLETED,
+
+        messages: [
+            {
+                value: JSON.stringify(data)
+            }
+        ]
+    });
+};

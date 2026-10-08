@@ -1,4 +1,4 @@
-import { producer } from "../../../driver-service/src/kafka/producer.js";
+import { publishTripCompleted } from "../kafka/producer.js";
 import { TripRepository } from "../repositories/trip.repository.js";
 
 export const TripController = {
@@ -382,6 +382,16 @@ export const TripController = {
                 trip.id,
                 status
             );
+            
+
+        if (updatedTrip.status === "COMPLETED") {
+
+            await publishTripCompleted({
+                trip_id: updatedTrip.id,
+                booking_id: updatedTrip.bookingId,
+                customer_user_id: updatedTrip.customerUserId
+            });
+        }
 
         return {
             is_error: false,

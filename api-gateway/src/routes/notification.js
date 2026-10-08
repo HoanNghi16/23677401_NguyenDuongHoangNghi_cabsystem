@@ -10,6 +10,7 @@ notiRouter.get("/me",(req, res, next)=>{
         page: page
     }, (err, response)=>{
         if (err){
+            console.log(err)
             return res.status(500).json({err})
         }
         if (response.is_error === true){

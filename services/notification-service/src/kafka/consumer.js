@@ -33,7 +33,7 @@ export const startConsumer = async () => {
     await consumer.run({
 
         eachMessage: async ({ topic, message }) => {
-
+            console.log(topic, message)
             try {
 
                 const data = JSON.parse(

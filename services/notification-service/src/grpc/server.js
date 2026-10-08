@@ -8,6 +8,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { NotificationService } from "./notification.service.js";
+import { startConsumer } from "../kafka/consumer.js";
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -131,5 +132,5 @@ const startGrpcServer = async () => {
 
 };
 
-
+startConsumer();
 startGrpcServer();

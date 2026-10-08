@@ -3,7 +3,14 @@ import mongoose from "mongoose";
 const NotiSchema = new mongoose.Schema({
     category:{
         type: String,
-        enum: ["TRIP_CREATED", "OFFER_CREATED", "PAYMENT_SUCCESS", "DRIVER_PROFILE_APPROVED"],
+        enum: [
+            "TRIP_CREATED",
+            "TRIP_CANCELLED",
+            "TRIP_COMPLETED",
+            "OFFER_CREATED",
+            "PAYMENT_SUCCESS",
+            "DRIVER_PROFILE_APPROVED"
+        ],
         default: "TRIP_CREATED"
     },
     user_id: {

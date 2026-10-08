@@ -1,4 +1,8 @@
 const ERROR_MESSAGE_CODE = {
+    INVALID_TRIP_TRANSITION:{
+       status: 400,
+       message: "Chuyển trạng thái không hợp lệ!" 
+    },
     TRIP_NOT_FOUND:{
         status: 404,
         message: "Không tìm thấy chuyến đi",
