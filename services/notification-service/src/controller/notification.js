@@ -22,6 +22,22 @@ export const NotificationController = {
         });
     },
 
+    CreateTripCompletedNotification: async (data) => {
+
+        await Notification.create({
+            category: "TRIP_COMPLETED",
+
+            user_id: data.customer_user_id,
+
+            title: "Chuyến xe đã hoàn thành",
+
+            content: {
+                trip_id: data.trip_id,
+                booking_id: data.booking_id
+            }
+        });
+    },
+
     CreateTripNotification: async (data) => {
 
         console.log(data);

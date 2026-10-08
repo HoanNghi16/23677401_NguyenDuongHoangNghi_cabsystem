@@ -29,11 +29,15 @@ export const startConsumer = async () => {
         topic: TOPICS.TRIP_CREATED,
         fromBeginning: false
     });
+    await consumer.subscribe({
+        topic: TOPICS.TRIP_COMPLETED,
+        fromBeginning: false
+    });
 
     await consumer.run({
 
         eachMessage: async ({ topic, message }) => {
-            console.log(topic, message)
+
             try {
 
                 const data = JSON.parse(
@@ -55,7 +59,12 @@ export const startConsumer = async () => {
                             .CreateTripNotification(data);
 
                         break;
+                    case TOPICS.TRIP_COMPLETED:
+                        console.log(data)
+                        await NotificationController
+                            .CreateTripCompletedNotification(data);
 
+                        break;
                 }
 
             } catch (error) {
