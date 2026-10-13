@@ -4,6 +4,52 @@ import { authorize } from "../middlewares/auth/handler.js";
 
 export const driverRouter = express.Router();
 
+driverRouter.get(
+    "/nearby",
+    authorize("ADMIN", "CUSTOMER"),
+    (req, res, next) => {
+        const latitude = Number(req.query.lat);
+        const longitude = Number(req.query.long);
+        const page = Number(req.query.page ?? 1);
+        const limit = Number(req.query.limit ?? 5);
+
+
+        driverClient.FindNearestDrivers(
+            {
+                latitude,
+                longitude,
+                page,
+                limit
+            },
+            (error, response) => {
+                if (error) {
+                    return res.status(500).json({
+                        message: "DRIVER_SERVICE_UNAVAILABLE"
+                    });
+                }
+
+                if (response.is_error) {
+                    return res.status(400).json({
+                        message: response.error_code
+                    });
+                }
+
+                return res.status(200).json({
+                    data: response.drivers,
+                    pagination: {
+                        page: response.page,
+                        limit: response.limit,
+                        total: response.total,
+                        total_pages: Math.ceil(
+                            response.total / response.limit
+                        )
+                    }
+                });
+            }
+        );
+    }
+);
+
 driverRouter.post(
     "/",
     authorize("ADMIN"),

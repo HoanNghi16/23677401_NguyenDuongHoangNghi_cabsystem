@@ -1,4 +1,18 @@
 services:
+  payment-db:
+    image: postgres:17
+    container_name: cab-payment-db
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${PAYMENT_DB_NAME}
+
+    ports:
+      - "5437:5432"
+    volumes:
+      - payment-db-data:/var/lib/postgresql/data
   trip-db:
     image: postgres:17
     container_name: cab-trip-db
@@ -127,3 +141,4 @@ volumes:
   booking-db-data:
   notification-db-data:
   trip-db-data:
+  payment-db-data:

@@ -389,7 +389,8 @@ export const TripController = {
             await publishTripCompleted({
                 trip_id: updatedTrip.id,
                 booking_id: updatedTrip.bookingId,
-                customer_user_id: updatedTrip.customerUserId
+                customer_user_id: updatedTrip.customerUserId,
+                amount: updatedTrip.fare,
             });
         }
 

@@ -26,14 +26,27 @@ export const publishTripCreated = async (data) => {
     });
 };
 
-export const publishTripCompleted = async (data) => {
-    await producer.send({
-        topic: TOPICS.TRIP_COMPLETED,
 
-        messages: [
-            {
-                value: JSON.stringify(data)
-            }
-        ]
-    });
+export const publishTripCompleted = async (data) => {
+    try {
+        const result = await producer.send({
+            topic: TOPICS.TRIP_COMPLETED,
+            messages: [
+                {
+                    key: String(data.trip_id),
+                    value: JSON.stringify(data)
+                }
+            ]
+        });
+
+        console.log("Published trip-completed:", {
+            data,
+            result
+        });
+
+        return result;
+    } catch (error) {
+        console.error("Failed to publish trip-completed:", error);
+        throw error;
+    }
 };

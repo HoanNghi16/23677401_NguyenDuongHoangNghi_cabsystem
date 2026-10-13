@@ -1,0 +1,25 @@
+generator client {
+    provider = "prisma-client-js"
+    output   = "../src/generated/prisma"
+}
+
+datasource db {
+    provider = "postgresql"
+}
+
+model Payment {
+    id             Int           @id @default(autoincrement())
+    bookingId      String
+    tripId         Int           @unique
+    customerUserId Int
+    amount         Float
+    status         PaymentStatus @default(UNPAID)
+
+    createdAt      DateTime      @default(now())
+    paidAt         DateTime?
+}
+
+enum PaymentStatus {
+    UNPAID
+    PAID
+}

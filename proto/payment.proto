@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package payment;
+
+service PaymentService {
+    rpc GetPayments(GetPaymentsRequest)
+        returns (GetPaymentsResponse);
+
+    rpc GetPayment(GetPaymentRequest)
+        returns (GetPaymentResponse);
+
+    rpc PayPayment(PayPaymentRequest)
+        returns (PayPaymentResponse);
+}
+
+message GetPaymentsRequest {
+    int32 customer_user_id = 1;
+}
+
+message GetPaymentsResponse {
+    bool is_error = 1;
+    string error_code = 2;
+    repeated Payment payments = 3;
+}
+
+message GetPaymentRequest {
+    int32 id = 1;
+    int32 customer_user_id = 2;
+}
+
+message GetPaymentResponse {
+    bool is_error = 1;
+    string error_code = 2;
+    Payment payment = 3;
+}
+
+message PayPaymentRequest {
+    int32 id = 1;
+    int32 customer_user_id = 2;
+    double amount = 3;
+}
+
+message PayPaymentResponse {
+    bool is_error = 1;
+    string error_code = 2;
+    Payment payment = 3;
+}
+
+message Payment {
+    int32 id = 1;
+    string booking_id = 2;
+    int32 trip_id = 3;
+    int32 customer_user_id = 4;
+    double amount = 5;
+    string status = 6;
+    string created_at = 7;
+    string paid_at = 8;
+}

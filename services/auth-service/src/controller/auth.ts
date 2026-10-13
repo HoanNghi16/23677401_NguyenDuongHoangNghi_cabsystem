@@ -18,7 +18,7 @@ function tokenGenerator(user: any){
             role: user?.role,
             token_version: user.tokenVersion
         }, process.env.JWT_ACCESS_SECRET!,{
-            expiresIn: "15m",
+            expiresIn: "60m",
         })
 
         const refresh = jwt.sign({

@@ -10,8 +10,28 @@ service DriverService {
     rpc UpdateDriverStatusAndLocation(UpdateDriverStatusAndLocationRequest)
         returns (UpdateDriverStatusAndLocationResponse);
     rpc ApproveDriverProfile(ApproveDriverProfileRequest) returns (ApproveDriverProfileResponse);
+    rpc FindNearestDrivers(FindNearestDriversRequest)
+        returns (FindNearestDriversResponse);
 }
 
+message FindNearestDriversRequest {
+    double latitude = 1;
+    double longitude = 2;
+    optional int32 page = 5;
+    optional int32 limit = 6;
+}
+message FindNearestDriversResponse {
+    bool is_error = 1;
+    string error_code = 2;
+    repeated NearestDriver drivers = 3;
+    int32 total = 4;
+    int32 page = 5;
+    int32 limit = 6;
+}
+message NearestDriver {
+    Driver driver = 1;
+    double distance_km = 2;
+}
 
 message ApproveDriverProfileRequest {
     int32 driver_id = 1;

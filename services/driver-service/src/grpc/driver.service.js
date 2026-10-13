@@ -114,5 +114,34 @@ export const driverService = {
                     : "UNKNOWN_ERROR"
             });
         }
+    },
+
+    FindNearestDrivers: async (call, callback) => {
+        try {
+            const result =
+                await DriverController.findNearestDrivers({
+                    latitude: call.request.latitude,
+                    longitude: call.request.longitude,
+                    page: call.request.page || 1,
+                    limit: call.request.limit || 5
+                });
+
+            return callback(null, result);
+
+        } catch (error) {
+            console.error("FindNearestDrivers error:", error);
+
+            return callback(null, {
+                is_error: true,
+                error_code: error instanceof Error
+                    ? error.message
+                    : "UNKNOWN_ERROR",
+                drivers: [],
+                total: 0,
+                page: call.request.page || 1,
+                limit: call.request.limit || 5
+            });
+        }
     }
+
 };

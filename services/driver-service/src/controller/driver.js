@@ -181,4 +181,57 @@ export class DriverController {
             }
         };
     }
+
+    static async findNearestDrivers({
+        latitude,
+        longitude,
+        page = 1,
+        limit = 5
+    }) {
+
+        if (!Number.isInteger(page) || page < 1) {
+            throw new Error("INVALID_PAGE");
+        }
+
+        if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
+            throw new Error("INVALID_LIMIT");
+        }
+
+        const result = await DriverRepository.findDrivers({
+            latitude,
+            longitude,
+            page,
+            limit
+        });
+
+        return {
+            is_error: false,
+            error_code: "",
+            drivers: result.drivers.map((driver) => ({
+                driver: {
+                    id: driver.id,
+                    user_id: driver.userId,
+                    name: driver.name,
+                    phone_number: driver.phoneNumber,
+                    status: driver.status,
+                    latitude: driver.latitude,
+                    longitude: driver.longitude,
+                    vehicle: driver.vehicle
+                        ? {
+                            id: driver.vehicle.id,
+                            license_plate: driver.vehicle.licensePlate,
+                            vehicle_type: driver.vehicle.vehicleType
+                        }
+                        : null,
+                    created_at: driver.createdAt.toISOString(),
+                    updated_at: driver.updatedAt.toISOString()
+                },
+                distance_km: driver.distanceKm
+            })),
+            total: result.total,
+            page,
+            limit
+        };
+    }
+
 }

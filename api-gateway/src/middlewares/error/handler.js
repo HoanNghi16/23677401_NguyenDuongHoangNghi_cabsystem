@@ -1,4 +1,12 @@
 const ERROR_MESSAGE_CODE = {
+    PAYMENT_ALREADY_PAID:{
+        status: 400,
+        message: "Giao dịch này đã được thanh toán"
+    },
+    INVALID_AMOUNT:{
+        status: 400,
+        message: "Số tiền không hợp lệ!"
+    },
     INVALID_TRIP_TRANSITION:{
        status: 400,
        message: "Chuyển trạng thái không hợp lệ!" 
