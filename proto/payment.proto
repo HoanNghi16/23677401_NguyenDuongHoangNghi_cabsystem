@@ -44,6 +44,7 @@ message PayPaymentResponse {
     bool is_error = 1;
     string error_code = 2;
     Payment payment = 3;
+    string message = 4;
 }
 
 message Payment {

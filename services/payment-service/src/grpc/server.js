@@ -141,7 +141,7 @@ const PayPayment = async (call, callback) => {
             });
         }
 
-        const payment = await PaymentController.PayPayment(
+        const {payment, message} = await PaymentController.PayPayment(
             id,
             customerUserId,
             amount
@@ -150,6 +150,7 @@ const PayPayment = async (call, callback) => {
         return callback(null, {
             is_error: false,
             error_code: "",
+            message,
             payment: {
                 id: payment.id,
                 booking_id: payment.bookingId,

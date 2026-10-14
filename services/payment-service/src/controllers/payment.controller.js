@@ -24,7 +24,7 @@ export const PaymentController = {
         }
 
         if (payment.status === "PAID") {
-            throw new Error("PAYMENT_ALREADY_PAID");
+            return {payment, message: "PAYMENT_ALREADY_PAID"};
         }
 
         const result = await PaymentRepository.MarkAsPaid(
@@ -50,6 +50,6 @@ export const PaymentController = {
             paid_at: updatedPayment.paidAt
         });
 
-        return updatedPayment;
+        return {payment: updatedPayment, message: "PAYMENT_SUCCESSFUL"};
     }
 };
