@@ -13,12 +13,9 @@ import { connectProducer } from "../kafka/producer.js";
 
 await connectProducer()
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 const PROTO_PATH = path.resolve(
-    __dirname,
-    "../../../../proto/booking.proto"
+    process.cwd(),
+    "proto/booking.proto"
 );
 
 const packageDefinition = protoLoader.loadSync(

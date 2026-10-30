@@ -4,13 +4,9 @@ import grpc from "@grpc/grpc-js";
 import protoLoader from "@grpc/proto-loader";
 import { healthService } from "./health.service.js";
 import { PaymentController } from "../controllers/payment.controller.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 const PROTO_PATH = path.resolve(
-    __dirname,
-    "../../../../proto/payment.proto"
+    process.cwd(),
+    "proto/payment.proto"
 );
 
 const packageDefinition = protoLoader.loadSync(PROTO_PATH, {

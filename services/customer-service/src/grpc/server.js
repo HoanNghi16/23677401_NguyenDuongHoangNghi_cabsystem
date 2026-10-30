@@ -8,12 +8,10 @@ import { customerService } from "./customer.service.js";
 import { healthService } from "./health.service.js";
 import { prisma } from "../database/prisma.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const PROTO_PATH = path.resolve(
-    __dirname,
-    "../../../../proto/customer.proto"
+    process.cwd(),
+    "proto/customer.proto"
 );
 
 const packageDefinition = protoLoader.loadSync(

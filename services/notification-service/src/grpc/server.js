@@ -12,13 +12,10 @@ import { healthService } from "./health.service.js";
 import { startConsumer } from "../kafka/consumer.js";
 
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 
 const PROTO_PATH = path.resolve(
-    __dirname,
-    "../../../../proto/notification.proto"
+    process.cwd(),
+    "proto/notification.proto"
 );
 
 

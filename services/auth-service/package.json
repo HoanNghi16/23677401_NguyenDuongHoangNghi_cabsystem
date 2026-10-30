@@ -4,11 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "tsx watch src/server.ts",
-    "postinstall": "prisma skills sync || exit 0",
-    "grpc": "tsx watch src/grpc/server.ts"
-  },
+      "dev": "tsx watch src/server.ts",
+      "build": "tsc",
+      "grpc": "tsx watch src/grpc/server.js"
+    },
   "keywords": [],
   "author": "",
   "license": "ISC",

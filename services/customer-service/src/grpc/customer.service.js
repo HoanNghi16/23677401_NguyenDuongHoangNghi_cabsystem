@@ -1,5 +1,4 @@
 import { CustomerController } from "../controller/customer.js";
-import { CustomerRepository } from "../repository/customer.js";
 
 export const customerService = {
 

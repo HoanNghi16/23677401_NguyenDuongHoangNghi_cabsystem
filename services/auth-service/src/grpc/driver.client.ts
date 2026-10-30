@@ -8,8 +8,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const PROTO_PATH = path.resolve(
-    __dirname,
-    "../../../../proto/driver.proto"
+    process.cwd(),
+    "proto/driver.proto"
 );
 
 const packageDefinition = protoLoader.loadSync(PROTO_PATH, {

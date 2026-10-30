@@ -1,18 +1,19 @@
-
 FROM node:22-alpine
 
 WORKDIR /app
 
-# Copy package files trước để tận dụng Docker cache
-COPY services/api-gateway/package*.json ./
+COPY services/api-gateway/package*.json ./services/api-gateway/
+
+WORKDIR /app/services/api-gateway
 
 RUN npm install --omit=dev
 
-# Copy source code API Gateway
-COPY services/api-gateway/ ./
+WORKDIR /app
 
-# Copy shared proto definitions
+COPY services/api-gateway/ ./services/api-gateway/
 COPY proto/ ./proto/
+
+WORKDIR /app/services/api-gateway
 
 EXPOSE 3000
 

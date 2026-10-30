@@ -8,12 +8,11 @@ import { healthService } from "./health.service.js";
 
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 
 const protoPath = path.resolve(
-    __dirname,
-    "../../../../proto/trip.proto"
+    process.cwd(),
+    "proto/trip.proto"
 );
 
 
