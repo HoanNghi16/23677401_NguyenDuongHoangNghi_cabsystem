@@ -5,18 +5,28 @@ import { BookingClient } from "../grpc/booking.client.js";
 export class DriverController {
 
     static async approveDriverProfile(driverData){
+        if(driverData.isApproved == false){
+            return {
+                
+            }
+        }
         const updatedDriver = await DriverRepository.approveDriver(driverData)
         if (updatedDriver){
-            await producer.send({
-                topic: DRIVER_PROFILE_APPROVED,
-                message: {
-                    key: String(updatedDriver.id),
-                    value: JSON.stringify({
-                        message: `Hồ sơ tài xế đã duyệt`,
-                        name: updatedDriver.name,
-                    })
-                }
-            })
+            try{
+                await producer.send({
+                    topic: DRIVER_PROFILE_APPROVED,
+                    messages: [{
+                        key: String(updatedDriver.id),
+                        value: JSON.stringify({
+                            message: `Hồ sơ tài xế đã duyệt`,
+                            name: updatedDriver.name,
+                        })
+                    }]
+                })
+            }catch(e){
+                console.log(e)
+            }
+            
             return {
                 error_code: "",
                 is_error: false,
@@ -231,6 +241,72 @@ export class DriverController {
             total: result.total,
             page,
             limit
+        };
+    }
+
+
+    static async getAllDrivers(filter) {
+        console.log(filter);
+        const page = Number(filter?.page ?? 1);
+        const limit = Number(filter?.limit ?? 10);
+        
+        let isApproved = filter?.is_approved;
+
+        if (
+            !Number.isInteger(page) ||
+            page < 1 ||
+            !Number.isInteger(limit) ||
+            limit < 1 ||
+            limit > 100
+        ) {
+            throw new Error("INVALID_PAGINATION");
+        }
+
+        // Chuyển string từ query/gRPC thành boolean
+        if (isApproved !== undefined && isApproved !== null) {
+            if (isApproved === "true" || isApproved === true) {
+                isApproved = true;
+            } else if (isApproved === "false" || isApproved === false) {
+                isApproved = false;
+            } else {
+                throw new Error("INVALID_APPROVAL_STATUS");
+            }
+        }
+
+        const result = await DriverRepository.findAllDrivers({
+            page,
+            limit,
+            isApproved
+        });
+
+        return {
+            is_error: false,
+            error_code: "",
+            drivers: result.drivers.map((driver) => ({
+                id: driver.id,
+                user_id: driver.userId,
+                name: driver.name,
+                phone_number: driver.phoneNumber,
+                status: driver.status,
+                is_approved: driver.isApproved,
+                latitude: driver.latitude,
+                longitude: driver.longitude,
+                vehicle: driver.vehicle
+                    ? {
+                        id: driver.vehicle.id,
+                        license_plate: driver.vehicle.licensePlate,
+                        vehicle_type: driver.vehicle.vehicleType
+                    }
+                    : null,
+                created_at: driver.createdAt.toISOString(),
+                updated_at: driver.updatedAt.toISOString()
+            })),
+            pagination: {
+                page: result.pagination.page,
+                limit: result.pagination.limit,
+                total: result.pagination.total,
+                total_pages: result.pagination.totalPages
+            }
         };
     }
 

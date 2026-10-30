@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package trip;
-
+import "health.proto";
 service TripService {
     rpc CreateTrip(CreateTripRequest)
         returns (CreateTripResponse);
@@ -12,7 +12,45 @@ service TripService {
         returns (CancelTripResponse);
     rpc UpdateTripStatus(UpdateTripStatusRequest)
         returns (UpdateTripStatusResponse);
+
+    rpc RateTrip(RateTripRequest)
+        returns (RateTripResponse);
+
+    rpc GetTrips(GetTripsRequest)
+        returns (GetTripsResponse);
+
 }
+
+message GetTripsRequest {
+
+    int32 page = 1;
+    int32 limit = 2;
+}
+
+message GetTripsResponse {
+    bool is_error = 1;
+    string error_code = 2;
+    repeated Trip trips = 3;
+
+    int32 total = 4;
+    int32 page = 5;
+    int32 limit = 6;
+    int32 total_pages = 7;
+}
+
+
+message RateTripRequest{
+    int32 id = 1;
+    float rate = 2;
+    string comment = 3;
+}
+
+message RateTripResponse{
+    bool is_error = 1;
+    Trip trip = 2;
+    string error_code = 3;
+}
+
 
 message UpdateTripStatusRequest {
     optional int32 id = 1;
@@ -81,6 +119,7 @@ message Trip {
 
     double fare = 8;
     string status = 9;
+
 }
 
 message Location {

@@ -6,7 +6,7 @@ export const driverService = {
         try{
             const result = await DriverController.approveDriverProfile({
                 driverId: call.request.driver_id,
-                status: call.request.status ?? "OFFLINE", 
+                isApproved: call.request.is_approved ?? false, 
             })
             return callback(null, result)
         }catch(err){
@@ -141,6 +141,17 @@ export const driverService = {
                 page: call.request.page || 1,
                 limit: call.request.limit || 5
             });
+        }
+    },
+
+    GetAllDrivers: async(call, callback)=>{
+        try{
+            const result = await DriverController.getAllDrivers(
+                call.request,
+            )
+            return callback(null, result)
+        }catch(e){
+            return (e, null)
         }
     }
 

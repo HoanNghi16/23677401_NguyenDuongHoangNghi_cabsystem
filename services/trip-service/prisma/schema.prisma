@@ -25,6 +25,9 @@ model Trip {
     fare       Float
     status     TripStatus @default(PICKING_UP)
 
+    rate    Float  @default(0)
+    comment String? 
+
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 }

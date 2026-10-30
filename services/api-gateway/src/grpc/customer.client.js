@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 
 const PROTO_PATH = path.resolve(
     __dirname,
-    "../../../proto/customer.proto"
+    "../../../../proto/customer.proto"
 );
 
 const packageDefinition = protoLoader.loadSync(

@@ -5,6 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { customerService } from "./customer.service.js";
+import { healthService } from "./health.service.js";
 import { prisma } from "../database/prisma.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -37,7 +38,12 @@ server.addService(
     customerService
 );
 
-const PORT = process.env.PORT;
+server.addService(
+    customerProto.health.Health.service,
+    healthService
+);
+
+const PORT = process.env.GRPC_PORT;
 
 await prisma.$connect();
 

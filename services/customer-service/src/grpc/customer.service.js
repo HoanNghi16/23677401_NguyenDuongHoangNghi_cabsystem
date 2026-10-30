@@ -54,8 +54,8 @@ export const customerService = {
     GetCustomer: async (call, callback) => {
         try {
             const id = call.request.id;
-
-            const result = await CustomerController.getCustomer({id, user_id: call.request.user_id})
+            const user_id = call.request.user_id == 0 ? undefined : call.request.user_id; 
+            const result = await CustomerController.getCustomer({id, user_id})
 
             callback(null, result);
 

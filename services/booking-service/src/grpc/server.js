@@ -6,6 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { BookingService } from "./booking.service.js";
+import { healthService } from "./health.service.js";
 import { connectDB } from "../database/db.js";
 
 import { connectProducer } from "../kafka/producer.js";
@@ -39,6 +40,11 @@ const server = new grpc.Server();
 server.addService(
     bookingProto.booking.BookingService.service,
     BookingService
+);
+
+server.addService(
+    bookingProto.health.Health.service,
+    healthService
 );
 
 const PORT = process.env.PORT;

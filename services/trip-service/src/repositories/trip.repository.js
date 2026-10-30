@@ -24,6 +24,18 @@ export class TripRepository {
         });
     }
 
+    static async rateTrip({ id, rate, comment }) {
+        return prisma.trip.update({
+            where: {
+                id,
+            },
+            data: {
+                rate,
+                comment
+            }
+        });
+    }
+
     static async cancelTrip(tripId, cancelReason) {
         return prisma.trip.update({
             where: {
@@ -45,6 +57,29 @@ export class TripRepository {
                 status
             }
         });
+    }
+
+
+    static async getTrips(page, limit) {
+        const skip = (page - 1) * limit;
+
+        const [trips, total] = await prisma.$transaction([
+            prisma.trip.findMany({
+                skip,
+                take: limit,
+                orderBy: {
+                    createdAt: "desc"
+                }
+            }),
+
+            prisma.trip.count()
+        ]);
+
+        return {
+            trips,
+            total,
+            totalPages: Math.ceil(total / limit)
+        };
     }
 
 }

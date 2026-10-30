@@ -249,6 +249,7 @@ export class BookingController{
             booking_id,
             respond
         } = data;
+        
 
         if (respond !== "ACCEPT" && respond !== "DENY") {
             return {

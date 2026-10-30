@@ -7,13 +7,12 @@ export class DriverRepository {
         const driver = await prisma.driver.findFirst({
             where:{
                 id: driverId,
-                isApproved: true,
             }
         })
         if (!driver){
             throw Error("DRIVER_NOT_FOUND")
         }
-        if (driver.isApproved === false){
+        if (driver.isApproved === true){
             throw Error("DRIVER_WAS_APPROVED")
         }
 
@@ -186,5 +185,45 @@ export class DriverRepository {
                 vehicle: true,
             }
         });
+    }
+
+
+    static async findAllDrivers({ page = 1, limit = 10, isApproved }) {
+        const skip = (page - 1) * limit;
+
+        const where = {};
+
+        // Chỉ lọc khi isApproved được truyền lên
+        if (isApproved !== undefined && isApproved !== null) {
+            where.isApproved = isApproved;
+        }
+
+        const [drivers, total] = await prisma.$transaction([
+            prisma.driver.findMany({
+                where,
+                include: {
+                    vehicle: true
+                },
+                orderBy: {
+                    createdAt: "desc"
+                },
+                skip,
+                take: limit
+            }),
+
+            prisma.driver.count({
+                where
+            })
+        ]);
+
+        return {
+            drivers,
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit)
+            }
+        };
     }
 }

@@ -10,6 +10,7 @@ import { notiRouter } from "./routes/notification.js";
 import { tripRouter } from "./routes/trip.js";
 import { paymentRouter } from "./routes/payment.js";
 import { generalRateLimit } from "./middlewares/rate-limit.js";
+import { healthRouter } from "./routes/health.js";
 
 const app = express();
 
@@ -18,12 +19,7 @@ app.use(express.json());
 
 app.use("/", generalRateLimit)
 
-app.get('/health', (req, res)=>{
-    res.status(200).json({
-        service: "api-gateway",
-        status: "OK"
-    })
-});
+app.use("/", healthRouter)
 
 app.use('/auth', authRouter)
 

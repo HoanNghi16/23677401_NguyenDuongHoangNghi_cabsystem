@@ -3,7 +3,7 @@ import grpc from "@grpc/grpc-js";
 import protoLoader from "@grpc/proto-loader";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-
+import { healthService } from "./health.service.js";
 import { authService } from "./auth.service.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -36,7 +36,12 @@ server.addService(
     authService
 );
 
-const PORT = process.env.GRPC_AUTH_PORT || 50051;
+server.addService(
+    authProto.health.Health.service,
+    healthService
+);
+
+const PORT = process.env.GRPC_PORT || 50051;
 
 server.bindAsync(
     `0.0.0.0:${PORT}`,

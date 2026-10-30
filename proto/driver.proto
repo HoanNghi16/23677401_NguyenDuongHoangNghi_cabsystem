@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package driver;
-
+import "health.proto";
 service DriverService {
     rpc CreateDriver(CreateDriverRequest) returns (CreateDriverResponse);
     rpc GetDriver(GetDriverRequest) returns (GetDriverResponse);
@@ -35,7 +35,7 @@ message NearestDriver {
 
 message ApproveDriverProfileRequest {
     int32 driver_id = 1;
-    string status = 2;
+    bool is_approved = 2;
 }
 
 message ApproveDriverProfileResponse {
@@ -94,6 +94,7 @@ message GetDriverResponse {
 message GetAllDriversRequest {
     optional int32 page = 1;
     optional int32 limit = 2;
+    optional bool is_approved = 3;
 }
 
 message GetAllDriversResponse {

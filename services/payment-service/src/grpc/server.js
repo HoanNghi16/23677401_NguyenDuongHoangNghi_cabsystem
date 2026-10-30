@@ -2,7 +2,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import grpc from "@grpc/grpc-js";
 import protoLoader from "@grpc/proto-loader";
-
+import { healthService } from "./health.service.js";
 import { PaymentController } from "../controllers/payment.controller.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -23,7 +23,7 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
 
 // Proto hiện tại được load với PaymentService nằm ở cấp root.
 const loadedProto = grpc.loadPackageDefinition(packageDefinition);
-const paymentProto = loadedProto.payment ?? loadedProto;
+const paymentProto = loadedProto;
 
 const GetPayments = async (call, callback) => {
     try {
@@ -179,7 +179,7 @@ const PayPayment = async (call, callback) => {
 export const startGrpcServer = () => {
     const server = new grpc.Server();
 
-    if (!paymentProto.PaymentService?.service) {
+    if (!paymentProto.payment.PaymentService?.service) {
         throw new Error(
             `PaymentService not found in proto. Loaded keys: ${Object.keys(
                 loadedProto
@@ -187,13 +187,19 @@ export const startGrpcServer = () => {
         );
     }
 
-    server.addService(paymentProto.PaymentService.service, {
+
+    server.addService(paymentProto.payment.PaymentService.service, {
         GetPayments,
         GetPayment,
         PayPayment
     });
 
-    const port = process.env.PAYMENT_GRPC_PORT || "5005";
+    server.addService(
+        paymentProto.health.Health.service,
+        healthService
+    );
+
+    const port = process.env.GRPC_PORT || "5005";
     const address = `0.0.0.0:${port}`;
 
     server.bindAsync(

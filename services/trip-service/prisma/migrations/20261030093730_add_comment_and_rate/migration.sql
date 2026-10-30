@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Trip" ADD COLUMN     "comment" TEXT,
+ADD COLUMN     "rate" DOUBLE PRECISION NOT NULL DEFAULT 0;

@@ -7,6 +7,10 @@ const ERROR_MESSAGE_CODE = {
         status: 400,
         message: "Số tiền không hợp lệ!"
     },
+    DRIVER_WAS_APPROVED:{
+        status: 409,
+        message: "Hồ sơ tài xế đã được xác nhận!",
+    },
     INVALID_TRIP_TRANSITION:{
        status: 400,
        message: "Chuyển trạng thái không hợp lệ!" 
@@ -19,6 +23,11 @@ const ERROR_MESSAGE_CODE = {
         status: 403,
         message: "Chuyến đi đã bị hủy!"
     },
+    TRIP_ALREADY_START:{
+        status: 400,
+        message: "Chuyến đi đã bắt đầu!",
+    }
+    ,
     OFFER_NOT_ASSIGNED_TO_DRIVER:{
         status: 403,
         message: "Bạn không có quyền thao tác với offer này!"
@@ -54,7 +63,7 @@ const ERROR_MESSAGE_CODE = {
     },
     CUSTOMER_NOT_FOUND: {
         status: 404,
-        message: "Khách hàng không tồn tại"
+        message: "Hồ sơ khách hàng chưa được thiết lập."
     },
 
     INVALID_REQUIRED_INPUT: {

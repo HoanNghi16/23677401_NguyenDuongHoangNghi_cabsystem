@@ -6,6 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { driverService } from "./driver.service.js";
+import { healthService } from "./health.service.js";
 import { prisma } from "../database/prisma.js";
 import { connectProducer } from "../kafka/producer.js";
 
@@ -37,8 +38,12 @@ server.addService(
     driverProto.driver.DriverService.service,
     driverService
 );
+server.addService(
+    driverProto.health.Health.service,
+    healthService
+);
 
-const PORT = process.env.PORT;
+const PORT = process.env.GRPC_PORT;
 
 await prisma.$connect();
 console.log("Driver database connected");

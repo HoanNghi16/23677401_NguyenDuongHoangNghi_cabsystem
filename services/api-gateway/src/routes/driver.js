@@ -4,6 +4,22 @@ import { authorize } from "../middlewares/auth/handler.js";
 
 export const driverRouter = express.Router();
 
+driverRouter.get("/", authorize("ADMIN"),(req, res, next)=>{
+    const filter = req.query
+    if(filter.is_approved){
+        filter.is_approved = filter.is_approved == 'true'
+    }
+    driverClient.GetAllDrivers(filter, (error, response)=>{
+        if (error){
+            next(error)
+        }
+        if (response.is_error){
+            next(new Error(response.error_code))
+        }
+        return res.json(response)
+    })
+})
+
 driverRouter.get(
     "/nearby",
     authorize("ADMIN", "CUSTOMER"),
@@ -164,7 +180,7 @@ driverRouter.patch("/:id", authorize("ADMIN"),
     (req, res, next)=>{
         driverClient.ApproveDriverProfile({
             driver_id: req.params.id,
-            status: req.body.status
+            is_approved: req.body.is_approved
         }, (error, response)=>{
             if (error){
                 next(error)
@@ -174,7 +190,7 @@ driverRouter.patch("/:id", authorize("ADMIN"),
                 );
             }
 
-            res.status(201).json(response);
+            res.status(200).json(response);
     })
 })
 

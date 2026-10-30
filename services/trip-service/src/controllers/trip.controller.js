@@ -177,6 +177,7 @@ export const TripController = {
             }
         };
     },
+    
 
 
     CancelTrip: async (data) => {
@@ -434,6 +435,81 @@ export const TripController = {
                     updatedTrip.status
             }
         };
-    }
+    },
+
+    RateTrip: async ({ id, rate, comment })=> {
+        if (!id || !Number.isInteger(id)) {
+            throw new Error("INVALID_TRIP_ID");
+        }
+
+        if (!Number.isFinite(rate) || rate < 1 || rate > 5) {
+            throw new Error("INVALID_RATE");
+        }
+
+        const result = await TripRepository.rateTrip({
+            id,
+            rate,
+            comment
+        });
+
+        if (result.count === 0) {
+            throw new Error("TRIP_NOT_FOUND_OR_ALREADY_RATED");
+        }
+
+        const trip = await TripRepository.findTripById(id);
+
+        return {
+            is_error: false,
+            error_code: "",
+            trip
+        };
+    },
+
+    GetTrips: async (data) => {
+
+        let { page, limit } = data;
+
+        page = Number(page) > 0 ? Number(page) : 1;
+        limit = Number(limit) > 0 ? Number(limit) : 10;
+
+        // Giới hạn tối đa 100 record mỗi trang
+        limit = Math.min(limit, 100);
+
+        const result = await TripRepository.getTrips(
+            page,
+            limit
+        );
+
+        return {
+            is_error: false,
+            error_code: "",
+            trips: result.trips.map(trip => ({
+                id: trip.id,
+                booking_id: trip.bookingId,
+
+                customer_user_id: trip.customerUserId,
+                customer_id: trip.customerId,
+                driver_id: trip.driverId,
+
+                pickup: {
+                    latitude: trip.pickupLatitude,
+                    longitude: trip.pickupLongitude
+                },
+
+                destination: {
+                    latitude: trip.destinationLatitude,
+                    longitude: trip.destinationLongitude
+                },
+
+                fare: trip.fare,
+                status: trip.status
+            })),
+
+            total: result.total,
+            page,
+            limit,
+            total_pages: result.totalPages
+        };
+    },
 
 };

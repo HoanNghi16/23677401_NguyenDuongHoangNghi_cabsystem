@@ -4,6 +4,35 @@ import { authorize } from "../middlewares/auth/handler.js";
 
 export const tripRouter = Router();
 
+tripRouter.get("/", (req, res, next)=>{
+    const filter = req.query
+    tripClient.GetTrips(
+        filter, (error, response)=>{
+            if (error){
+                return next(error)
+            }
+            if (response.is_error){
+                return next(new Error(response.error_code))
+            }
+            return res.status(200).json(response)
+        }
+    )
+})
+
+tripRouter.post("/:id/rate", (req, res, next)=>{
+    const rate = req.body
+    tripClient.RateTrip({
+        ...rate, id: req.params.id,
+    },(error, response)=>{
+        if (error){
+            return next(error)
+        }
+        if (response.is_error){
+            return next(new Error(response.error_code))
+        }
+        return res.status(200).json(response)
+    })
+})
 
 tripRouter.get("/:id",(req, res, next)=>{
     const id = req.params.id

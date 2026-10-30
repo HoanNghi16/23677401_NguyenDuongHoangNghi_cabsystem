@@ -50,8 +50,13 @@ export class CustomerController {
     }
 
     static async getCustomer({id, user_id}) {
-
-        const customer = await CustomerRepository.findById(id) ?? await CustomerRepository.findByUserId(user_id);
+        let customer;
+        if (id && user_id==0){
+            customer = await CustomerRepository.findById(id)
+        }
+        if (user_id && id==0){
+            customer = await CustomerRepository.findByUserId(user_id);
+        }
 
         if (!customer) {
             throw new Error("CUSTOMER_NOT_FOUND");

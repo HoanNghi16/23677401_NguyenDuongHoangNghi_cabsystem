@@ -8,6 +8,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { NotificationService } from "./notification.service.js";
+import { healthService } from "./health.service.js";
 import { startConsumer } from "../kafka/consumer.js";
 
 
@@ -36,7 +37,7 @@ const packageDefinition = protoLoader.loadSync(
 const notificationProto =
     grpc.loadPackageDefinition(
         packageDefinition
-    ).notification;
+    );
 
 
 const GetNotifications = async (call, callback) => {
@@ -83,17 +84,23 @@ const startGrpcServer = async () => {
 
         const server = new grpc.Server();
 
+        console.log(notificationProto)
 
         server.addService(
-            notificationProto.NotificationService.service,
+            notificationProto.notification.NotificationService.service,
             {
                 GetNotifications
             }
         );
 
+        server.addService(
+            notificationProto.health.Health.service,
+            healthService
+        );
+
 
         const port =
-            process.env.NOTIFICATION_GRPC_PORT || 50055;
+            process.env.GRPC_PORT || 50055;
 
 
         server.bindAsync(

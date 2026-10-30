@@ -4,6 +4,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 import { TripController } from "../controllers/trip.controller.js";
+import { healthService } from "./health.service.js";
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -32,7 +33,7 @@ const packageDefinition =
 const tripProto =
     grpc.loadPackageDefinition(
         packageDefinition
-    ).trip;
+    );
 
 
 const CreateTrip = async (call, callback) => {
@@ -138,23 +139,74 @@ const UpdateTripStatus = async (call, callback) => {
     }
 };
 
+const GetTrips = async (call, callback) => {
+    try {
+        const result = await TripController.GetTrips(
+            call.request
+        );
+
+        callback(null, result);
+
+    } catch (error) {
+        console.error("GetTrips error:", error);
+
+        callback(null, {
+            is_error: true,
+            error_code: "INTERNAL_SERVER_ERROR",
+            trips: [],
+            total: 0,
+            page: call.request.page || 1,
+            limit: call.request.limit || 10,
+            total_pages: 0
+        });
+    }
+};
+
+const RateTrip = async (call, callback) => {
+    try {
+        console.log(call.request)
+        const result = await TripController.RateTrip(
+            call.request
+        );
+
+        callback(null, result);
+
+    } catch (error) {
+        console.error("RateTrip error:", error);
+
+        callback(null, {
+            is_error: true,
+            error_code: error instanceof Error
+                ? error.message
+                : "INTERNAL_SERVER_ERROR"
+        });
+    }
+};
+
 
 export const startGrpcServer = () => {
 
     const server = new grpc.Server();
 
     server.addService(
-        tripProto.TripService.service,
+        tripProto.trip.TripService.service,
         {
             CreateTrip,
             GetTrip,
             CancelTrip,
-            UpdateTripStatus
+            UpdateTripStatus,
+            RateTrip,
+            GetTrips,
         }
     );
 
+    server.addService(
+        tripProto.health.Health.service,
+        healthService
+    );
+
     const port =
-        process.env.PORT;
+        process.env.GRPC_PORT;
 
     server.bindAsync(
         `0.0.0.0:${port}`,
