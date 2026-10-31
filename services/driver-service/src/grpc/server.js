@@ -17,6 +17,7 @@ const PROTO_PATH = path.resolve(
     "proto/driver.proto"
 );
 
+
 const packageDefinition = protoLoader.loadSync(
     PROTO_PATH,
     {

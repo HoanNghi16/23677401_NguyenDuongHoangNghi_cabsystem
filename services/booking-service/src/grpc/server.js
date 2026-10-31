@@ -44,7 +44,7 @@ server.addService(
     healthService
 );
 
-const PORT = process.env.PORT;
+const PORT = process.env.GRPC_PORT;
 
 await connectDB();
 
